@@ -78,13 +78,20 @@ WSGI_APPLICATION = 'back.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
+DJANGO_DB_PASSWORD_FILE = os.environ.get('DJANGO_DB_PASSWORD_FILE')
+if DJANGO_DB_PASSWORD_FILE:
+    with open(DJANGO_DB_PASSWORD_FILE, 'r') as f:
+        DJANGO_DB_PASSWORD = f.read()
+else:
+    DJANGO_DB_PASSWORD = os.environ.get('DJANGO_DB_PASSWORD', 'password')
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'HOST': os.environ.get('DJANGO_DB_HOST', 'db'),
         'NAME': os.environ.get('DJANGO_DB_NAME', 'console'),
         'USER': os.environ.get('DJANGO_DB_USER', 'user'),
-        'PASSWORD': os.environ.get('DJANGO_DB_PASSWORD', 'password'),
+        'PASSWORD': DJANGO_DB_PASSWORD,
     }
 }
 

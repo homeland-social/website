@@ -4,17 +4,24 @@
 
 const path = require('path')
 
+const API_HOST = process.env.API_HOST || 'back';
+const API_PORT = process.env.API_PORT || 8000;
+const VUE_HOST = process.env.VUE_HOST || 'localhost';
+const VUE_PORT = process.env.VUE_PORT || 8080;
+
 module.exports = {
   dev: {
 
     // Paths
     assetsSubDirectory: 'static',
     assetsPublicPath: '/',
-    proxyTable: {},
+    proxyTable: {
+      '/api': `http://${API_HOST}:${API_PORT}`,
+    },
 
     // Various Dev Server settings
-    host: 'localhost', // can be overwritten by process.env.HOST
-    port: 8080, // can be overwritten by process.env.PORT, if port is in use, a free one will be determined
+    host: VUE_HOST, // can be overwritten by process.env.HOST
+    port: VUE_PORT, // can be overwritten by process.env.PORT, if port is in use, a free one will be determined
     autoOpenBrowser: false,
     errorOverlay: true,
     notifyOnErrors: true,
