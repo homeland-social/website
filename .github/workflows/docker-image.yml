@@ -27,10 +27,10 @@ jobs:
         run: |
           docker build . -f docker/front/Dockerfile \
             -t ${{secrets.DOCKER_USER}}/website-static:${{env.tag}} \
-            -t latest
+            -t ${{secrets.DOCKER_USER}}/website-static:latest
           docker build . -f docker/back/Dockerfile \
             -t ${{secrets.DOCKER_USER}}/website-api:${{env.tag}} \
-            -t latest
+            -t ${{secrets.DOCKER_USER}}/website-api:latest
           docker push ${{secrets.DOCKER_USER}}/website-api:${{env.tag}}
           docker push ${{secrets.DOCKER_USER}}/website-api:latest
           docker push ${{secrets.DOCKER_USER}}/website-static:${{env.tag}}
