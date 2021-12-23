@@ -16,5 +16,5 @@ RUN npm run build
 
 FROM nginx:1.21-alpine AS final
 
-COPY /app/dist/static /usr/share/nginx/html
-COPY /app/dist/index.html /usr/share/nginx/html
+COPY --from=build /front/dist/static /usr/share/nginx/html
+COPY --from=build /front/dist/index.html /usr/share/nginx/html
