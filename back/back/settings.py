@@ -13,6 +13,16 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 import os
 from pathlib import Path
 
+def get_from_env_or_file(var_name, default=None):
+    file_var_name = '%s_FILE' % var_name
+    path = os.environ.get(file_var_name)
+    if path and os.path.isfile(path):
+        with open(path, 'r') as f:
+            return f.read()
+    else:
+        return os.environ.get(var_name, default)
+
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -21,12 +31,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-f)63a8(q@ykri+c1)=*y@5ma!ox%%@1dlgi2e@!v$952hlcdgx'
+SECRET_KEY = get_from_env_or_file(
+    'DJANGO_SECRET_KEY',
+    'django-insecure-f)63a8(q@ykri+c1)=*y@5ma!ox%%@1dlgi2e@!v$952hlcdgx')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    '.shanty.social',
+]
 
 
 # Application definition
@@ -78,12 +92,7 @@ WSGI_APPLICATION = 'back.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
-DJANGO_DB_PASSWORD_FILE = os.environ.get('DJANGO_DB_PASSWORD_FILE')
-if DJANGO_DB_PASSWORD_FILE:
-    with open(DJANGO_DB_PASSWORD_FILE, 'r') as f:
-        DJANGO_DB_PASSWORD = f.read()
-else:
-    DJANGO_DB_PASSWORD = os.environ.get('DJANGO_DB_PASSWORD', 'password')
+DJANGO_DB_PASSWORD = get_from_env_or_file('DJANGO_DB_PASSWORD', 'password')
 
 DATABASES = {
     'default': {
