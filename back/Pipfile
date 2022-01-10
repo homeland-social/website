@@ -6,13 +6,27 @@ name = "pypi"
 [packages]
 django = "*"
 django-extensions = "*"
-uvicorn = "*"
-psycopg2 = "*"
 djangorestframework = "*"
 djangorestframework-simplejwt = "*"
+django-cache-memoize = "*"
+django-powerdns = {ref = "0d630d8", git = "https://btimby@bitbucket.org/btimby/django-powerdns.git"}
+django-mailjet = "*"
+django-celery-email = "*"
+django-mail-templated = "*"
+django-prometheus = "*"
+django-celery-beat = "*"
+uvicorn = "*"
+psycopg2-binary = "*"
+pycosat = "*"
+python-memcached = "*"
+acme = "*"
+celery = "*"
+redis = "*"
+whitenoise = "*"
+django-redis = "*"
 
 [dev-packages]
 flake8 = "*"
 
 [requires]
-python_version = "3.8"
+python_version = "3"

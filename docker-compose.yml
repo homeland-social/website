@@ -4,7 +4,7 @@ services:
   front:
     image: front
     build:
-      dockerfile: docker/front/Dockerfile
+      dockerfile: docker/website/Dockerfile
       context: .
       target: node
     volumes:
@@ -20,12 +20,15 @@ services:
   back:
     image: back
     build:
-      dockerfile: docker/back/Dockerfile
+      dockerfile: docker/website/Dockerfile
       context: .
+      target: python
     depends_on:
       - db
+      - redis
     volumes:
       - ./back:/app:ro
+      - ./docker/website/entrypoint.sh:/entrypoint.sh:ro
     environment:
       - DJANGO_DEBUG=true
       - DJANGO_HOST=0.0.0.0
@@ -40,7 +43,6 @@ services:
     entrypoint: /wait-for db:5432 -- python3 manage.py migrate --noinput
     volumes:
       - ./back:/app:ro
-      - ./docker/back/entrypoint.sh:/entrypoint.sh:ro
     depends_on:
       - db
     environment:
@@ -52,9 +54,80 @@ services:
       - DJANGO_DB_NAME=shanty
       - DJANGO_DB_PASSWORD=password
 
+  celery:
+    image: back
+    entrypoint: /wait-for db:5432 -- python manage.py celery
+    volumes:
+      - ./back:/app:ro
+    depends_on:
+      - db
+      - redis
+    environment:
+      - DJANGO_DB_HOST=db
+      - DJANGO_DB_USER=user
+      - DJANGO_DB_NAME=shanty
+      - DJANGO_DB_PASSWORD=password
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_BEAT_SCHEDULER=django_celery_beat.schedulers:DatabaseScheduler
+
+  beat:
+    image: back
+    entrypoint: /wait-for db:5432 -- celery -A back beat -l info
+    volumes:
+      - ./back:/app:ro
+    depends_on:
+      - db
+      - redis
+    environment:
+      - DJANGO_DB_HOST=db
+      - DJANGO_DB_USER=user
+      - DJANGO_DB_NAME=shanty
+      - DJANGO_DB_PASSWORD=password
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_BEAT_SCHEDULER=django_celery_beat.schedulers:DatabaseScheduler
+
+  dns:
+    image: powerdns
+    build:
+      dockerfile: ./docker/powerdns/Dockerfile
+      context: ./
+    depends_on:
+      - db
+      - migrate
+    volumes:
+      - ./docker/powerdns/pdns.conf.tmpl:/etc/pdns.conf.tmpl:ro
+    environment:
+      - PGSQL_HOST=db
+      - PGSQL_DATABASE=shanty
+      - PGSQL_USERNAME=user
+      - PGSQL_PASSWORD=password
+
   db:
     image: postgres:14-alpine
     environment:
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=shanty
+
+  redis:
+    image: redis:alpine
+
+  pebble:
+    image: letsencrypt/pebble
+    command: pebble -config /etc/pebble/pebble.conf.json
+    volumes:
+      - ./docker/pebble/pebble.conf.json:/etc/pebble/pebble.conf.json:ro
+
+  flower:
+    image: mher/flower
+    environment:
+      - FLOWER_PORT=8888
+      - CELERY_BROKER_URL=redis://redis:6379/0
+    ports:
+      - "8888:8888"
+
+  prometheus:
+    image: prom/prometheus
+
+  grafana:
+    image: grafana/grafana

@@ -31,16 +31,23 @@ jobs:
 
       - name: build and push
         run: |
-          docker build . -f docker/front/Dockerfile \
+          docker build . -f docker/website/Dockerfile \
+            --target=static \
             -t ${{secrets.DOCKER_USER}}/website-static:${{env.tag}} \
             -t ${{secrets.DOCKER_USER}}/website-static:latest
-          docker build . -f docker/back/Dockerfile \
+          docker build . -f docker/website/Dockerfile \
+            --target=python \
             -t ${{secrets.DOCKER_USER}}/website-api:${{env.tag}} \
             -t ${{secrets.DOCKER_USER}}/website-api:latest
+          docker build . -f docker/powerdns/Dockerfile \
+            -t ${{secrets.DOCKER_USER}}/website-dns:${{env.tag}} \
+            -t ${{secrets.DOCKER_USER}}/website-dns:latest
           docker push ${{secrets.DOCKER_USER}}/website-api:${{env.tag}}
           docker push ${{secrets.DOCKER_USER}}/website-api:latest
           docker push ${{secrets.DOCKER_USER}}/website-static:${{env.tag}}
           docker push ${{secrets.DOCKER_USER}}/website-static:latest
+          docker push ${{secrets.DOCKER_USER}}/website-dns:${{env.tag}}
+          docker push ${{secrets.DOCKER_USER}}/website-dns:latest
 
       - name: Docker Hub Description
         uses: peter-evans/dockerhub-description@v2

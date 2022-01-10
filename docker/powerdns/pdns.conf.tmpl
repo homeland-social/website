@@ -1,0 +1,63 @@
+# cache-ttl	Seconds to store packets in the PacketCache
+cache-ttl=60
+
+# config-dir	Location of configuration directory (pdns.conf)
+config-dir=/etc/powerdns
+
+# daemon	Operate as a daemon
+daemon=no
+
+# disable-axfr	Disable zonetransfers but do allow TCP queries
+disable-axfr=yes
+
+disable-syslog=yes
+
+# distributor-threads	Default number of Distributor (backend) threads to start
+distributor-threads=1
+
+# guardian	Run within a guardian process
+guardian=yes
+
+launch=
+
+# local-address	Local IP addresses to which we bind
+local-address=0.0.0.0
+
+# local-port	The port on which we listen
+local-port=53
+
+# loglevel	Amount of logging. Higher is more. Do not set below 3
+loglevel=4
+
+# master	Act as a master
+master=yes
+
+# negquery-cache-ttl	Seconds to store packets in the PacketCache
+negquery-cache-ttl=60
+
+# setgid	If set, change group id to this gid for more security
+setgid=pdns
+
+# setuid	If set, change user id to this uid for more security
+setuid=pdns
+
+# socket-dir	Where the controlsocket will live
+socket-dir=/var/run
+
+# version-string	PowerDNS version in packets - full, anonymous, powerdns or custom
+version-string=powerdns
+
+# webserver	Start a webserver for monitoring
+webserver=no
+
+launch+=gpgsql
+
+# gpgsql parameters
+gpgsql-host=${PGSQL_HOST}
+gpgsql-port=${PGSQL_PORT}
+gpgsql-dbname=${PGSQL_DATABASE}
+gpgsql-user=${PGSQL_USERNAME}
+gpgsql-password=${PGSQL_PASSWORD}
+gpgsql-dnssec=${PGSQL_DNSSEC}
+
+include-dir=/etc/pdns.d

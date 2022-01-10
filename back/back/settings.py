@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
 import os
+import sys
 from pathlib import Path
 
 
@@ -23,6 +24,8 @@ def get_from_env_or_file(var_name, default=None):
     else:
         return os.environ.get(var_name, default)
 
+
+TEST = 'test' in sys.argv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -41,6 +44,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
     '.shanty.social',
+    'localhost',
 ]
 
 
@@ -54,6 +58,10 @@ INSTALLED_APPS = [
     # 'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_extensions',
+    'django_celery_beat',
+    'djcelery_email',
+    'mail_templated',
+    'powerdns',
     'rest_framework',
     'rest_framework_simplejwt',
     'api',
@@ -61,6 +69,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -106,6 +115,14 @@ DATABASES = {
 }
 
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://redis:6379/1',
+    }
+}
+
+
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
 
@@ -147,6 +164,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = Path(BASE_DIR).joinpath('dist', 'static')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
@@ -155,10 +173,34 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'api.User'
 
+CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'redis://redis:6379/0')
+CELERY_RESULT_BACKEND = CELERY_BROKER_URL
+CELERY_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_BEAT_SCHEDULER = os.environ.get('CELERY_BEAT_SCHEDULER', 'django_celery_beat.schedulers:DatabaseScheduler')
+CELERY_COMMAND = ('celery', '-A', 'back', 'worker', '-l', 'info')
+CELERY_AUTORELOAD = True
+
+if TEST:
+    CELERY_ALWAYS_EAGER = True
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
 }
+
+EMAIL_BACKEND = 'djcelery_email.backends.CeleryEmailBackend'
+
+CELERY_EMAIL_BACKEND = 'django_mailjet.backends.MailjetBackend'
+MAILJET_API_KEY = get_from_env_or_file('DJANGO_MAILJET_API_KEY', None)
+MAILJET_API_SECRET = get_from_env_or_file('DJANGO_MAILJET_API_SECRET', None)
+DEFAULT_FROM_EMAIL = 'admin@shanty.social'
+
+EMAIL_CONFIRM_DAYS = 7
+
+ACME_DIRECTORY_URL = 'http://pebble/'
+ACME_KEY_BITS = 2048
+ACME_PKEY_BITS = 2048
 
 ADMIN_ENABLED = False
