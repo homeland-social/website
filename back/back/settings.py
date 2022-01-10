@@ -40,7 +40,7 @@ SECRET_KEY = get_from_env_or_file(
     'django-insecure-f)63a8(q@ykri+c1)=*y@5ma!ox%%@1dlgi2e@!v$952hlcdgx')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DJANGO_DEBUG', '').lower() == 'true'
 
 ALLOWED_HOSTS = [
     '.shanty.social',
@@ -181,10 +181,8 @@ CELERY_BEAT_SCHEDULER = os.environ.get(
     'CELERY_BEAT_SCHEDULER',
     'django_celery_beat.schedulers:DatabaseScheduler')
 CELERY_COMMAND = ('celery', '-A', 'back', 'worker', '-l', 'info')
-CELERY_AUTORELOAD = True
-
-if TEST:
-    CELERY_ALWAYS_EAGER = True
+CELERY_AUTORELOAD = DEBUG
+CELERY_ALWAYS_EAGER = TEST
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
