@@ -2,6 +2,10 @@
 
 PDNS_CONF=/etc/pdns.conf
 
+if [ ! -z "${PGSQL_PASSWORD_FILE}" ]; then
+	PGSQL_PASSWORD=$(cat ${PGSQL_PASSWORD_FILE})
+fi
+
 # Defaults
 PGSQL_HOST=${PGSQL_HOST:-localhost}
 PGSQL_DATABASE=${PGSQL_DATABASE:-pdns}
