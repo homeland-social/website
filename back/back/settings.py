@@ -177,7 +177,9 @@ CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'redis://redis:6379/0')
 CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 CELERY_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
-CELERY_BEAT_SCHEDULER = os.environ.get('CELERY_BEAT_SCHEDULER', 'django_celery_beat.schedulers:DatabaseScheduler')
+CELERY_BEAT_SCHEDULER = os.environ.get(
+    'CELERY_BEAT_SCHEDULER',
+    'django_celery_beat.schedulers:DatabaseScheduler')
 CELERY_COMMAND = ('celery', '-A', 'back', 'worker', '-l', 'info')
 CELERY_AUTORELOAD = True
 
