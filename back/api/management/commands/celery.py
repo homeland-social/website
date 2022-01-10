@@ -21,4 +21,4 @@ class Command(BaseCommand):
 
         else:
             self.stdout.write('Starting celery worker...')
-            suprocess.call(settings.CELERY_COMMAND)
+            subprocess.call(settings.CELERY_COMMAND)
