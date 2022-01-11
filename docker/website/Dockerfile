@@ -63,4 +63,4 @@ FROM nginx:1.21-alpine AS static
 
 COPY --from=node-build /app/dist/static /usr/share/nginx/html/static
 COPY --from=node-build /app/dist/index.html /usr/share/nginx/html
-COPY --from=python-build /app/dist/static /usr/share/nginx/html/static
+COPY --from=python-build /app/api/static /usr/share/nginx/html/static
