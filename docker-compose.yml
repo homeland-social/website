@@ -32,8 +32,6 @@ services:
       - ./docker/website/entrypoint-api.sh:/entrypoint.sh:ro
     environment:
       - DJANGO_DEBUG=true
-      - DJANGO_HOST=0.0.0.0
-      - DJANGO_PORT=8000
       - DJANGO_DB_HOST=db
       - DJANGO_DB_USER=user
       - DJANGO_DB_NAME=shanty
@@ -52,8 +50,6 @@ services:
       - db
     environment:
       - DJANGO_DEBUG=true
-      - DJANGO_HOST=0.0.0.0
-      - DJANGO_PORT=8000
       - DJANGO_DB_HOST=db
       - DJANGO_DB_USER=user
       - DJANGO_DB_NAME=shanty
