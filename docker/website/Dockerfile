@@ -44,6 +44,9 @@ RUN python3 manage.py collectstatic --noinput
 
 FROM node:17-alpine AS node
 
+ADD ./docker/website/entrypoint-vue.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 # For webpack:
 # https://github.com/webpack/webpack/issues/14532
 ENV NODE_OPTIONS=--openssl-legacy-provider
@@ -52,7 +55,7 @@ ADD ./front /app
 WORKDIR /app
 RUN npm i
 
-ENTRYPOINT [ "npm", "run", "dev" ]
+ENTRYPOINT [ "/entrypoint.sh" ]
 
 
 FROM node AS node-build

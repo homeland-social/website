@@ -28,7 +28,7 @@ services:
       - redis
     volumes:
       - ./back:/app:ro
-      - ./docker/website/entrypoint.sh:/entrypoint.sh:ro
+      - ./docker/website/entrypoint-api.sh:/entrypoint.sh:ro
     environment:
       - DJANGO_DEBUG=true
       - DJANGO_HOST=0.0.0.0
@@ -46,6 +46,7 @@ services:
       target: migrate
     volumes:
       - ./back:/app:ro
+      - ./docker/website/entrypoint-migrate.sh:/entrypoint.sh:ro
     depends_on:
       - db
     environment:
@@ -65,6 +66,7 @@ services:
       target: celery
     volumes:
       - ./back:/app:ro
+      - ./docker/website/entrypoint-celery.sh:/entrypoint.sh:ro
     depends_on:
       - db
       - redis
@@ -85,6 +87,7 @@ services:
       target: beat
     volumes:
       - ./back:/app:ro
+      - ./docker/website/entrypoint-beat.sh:/entrypoint.sh:ro
     depends_on:
       - db
       - redis
