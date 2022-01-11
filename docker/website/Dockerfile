@@ -31,6 +31,12 @@ ADD ./docker/website/entrypoint-beat.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 
+FROM python AS migrate
+
+ADD ./docker/website/entrypoint-migrate.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+
 FROM python AS python-build
 
 RUN python3 manage.py collectstatic --noinput

@@ -39,7 +39,11 @@ services:
       - DJANGO_DB_PASSWORD=password
 
   migrate:
-    image: back
+    image: migrate
+    build:
+      dockerfile: docker/website/Dockerfile
+      context: .
+      target: migrate
     volumes:
       - ./back:/app:ro
     depends_on:
@@ -54,7 +58,11 @@ services:
       - DJANGO_DB_PASSWORD=password
 
   celery:
-    image: back
+    image: celery
+    build:
+      dockerfile: docker/website/Dockerfile
+      context: .
+      target: celery
     volumes:
       - ./back:/app:ro
     depends_on:
@@ -70,7 +78,11 @@ services:
       - CELERY_BEAT_SCHEDULER=django_celery_beat.schedulers:DatabaseScheduler
 
   beat:
-    image: back
+    image: beat
+    build:
+      dockerfile: docker/website/Dockerfile
+      context: .
+      target: beat
     volumes:
       - ./back:/app:ro
     depends_on:
