@@ -1,7 +1,7 @@
 FROM python:3-alpine AS python
 
 ADD ./back /app
-ADD ./docker/website/entrypoint.sh /entrypoint.sh
+ADD ./docker/website/entrypoint-api.sh /entrypoint.sh
 
 RUN wget https://raw.githubusercontent.com/eficode/wait-for/master/wait-for
 RUN chmod +x /wait-for
@@ -17,6 +17,18 @@ RUN apk add --no-cache git postgresql-client postgresql-dev gcc \
     apk del git gcc linux-headers postgresql-dev musl-dev zlib-dev libffi-dev
 
 ENTRYPOINT [ "/entrypoint.sh" ]
+
+
+FROM python AS celery
+
+ADD ./docker/website/entrypoint-celery.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+
+FROM python AS beat
+
+ADD ./docker/website/entrypoint-beat.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 
 FROM python AS python-build

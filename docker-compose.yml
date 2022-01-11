@@ -40,7 +40,6 @@ services:
 
   migrate:
     image: back
-    entrypoint: /wait-for db:5432 -- python3 manage.py migrate --noinput
     volumes:
       - ./back:/app:ro
     depends_on:
@@ -56,7 +55,6 @@ services:
 
   celery:
     image: back
-    entrypoint: /wait-for db:5432 -- python manage.py celery
     volumes:
       - ./back:/app:ro
     depends_on:
@@ -73,7 +71,6 @@ services:
 
   beat:
     image: back
-    entrypoint: /wait-for db:5432 -- celery -A back beat -l info
     volumes:
       - ./back:/app:ro
     depends_on:
