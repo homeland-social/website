@@ -11,10 +11,10 @@ services:
       - ./front:/app:ro
       - ./docker/website/entrypoint-vue.sh:/entrypoint.sh:ro
     ports:
-      - 8000:8080
+      - 8000:8000
     environment:
       - VUE_HOST=0.0.0.0
-      - VUE_PORT=8080
+      - VUE_PORT=8000
       - API_HOST=back
       - API_PORT=8000
 
