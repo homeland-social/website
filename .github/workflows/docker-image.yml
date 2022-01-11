@@ -54,7 +54,12 @@ jobs:
           docker build . -f docker/powerdns/Dockerfile \
             -t ${{secrets.DOCKER_USER}}/website-dns:${{env.tag}} \
             -t ${{secrets.DOCKER_USER}}/website-dns:latest
-          docker push -a
+          docker push -a ${{secrets.DOCKER_USER}}/website-static
+          docker push -a ${{secrets.DOCKER_USER}}/website-api
+          docker push -a ${{secrets.DOCKER_USER}}/website-beat
+          docker push -a ${{secrets.DOCKER_USER}}/website-celery
+          docker push -a ${{secrets.DOCKER_USER}}/website-migrate
+          docker push -a ${{secrets.DOCKER_USER}}/website-dns
 
       - name: Docker Hub Description
         uses: peter-evans/dockerhub-description@v2
