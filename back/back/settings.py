@@ -188,9 +188,13 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    )
 }
 
-EMAIL_BACKEND = 'djcelery_email.backends.CeleryEmailBackend'
+EMAIL_BACKEND = os.environ.get(
+    'DJANGO_EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
 
 CELERY_EMAIL_BACKEND = 'django_mailjet.backends.MailjetBackend'
 MAILJET_API_KEY = get_from_env_or_file('DJANGO_MAILJET_API_KEY', None)
@@ -198,6 +202,7 @@ MAILJET_API_SECRET = get_from_env_or_file('DJANGO_MAILJET_API_SECRET', None)
 DEFAULT_FROM_EMAIL = 'admin@shanty.social'
 
 EMAIL_CONFIRM_DAYS = 7
+EMAIL_CONFIRM_URL = '/#/confirm'
 
 ACME_DIRECTORY_URL = 'http://pebble/'
 ACME_KEY_BITS = 2048

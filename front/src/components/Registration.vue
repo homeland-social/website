@@ -1,105 +1,77 @@
 <template>
-  <div class="card bg-light">
-    <article class="card-body mx-auto" style="max-width: 400px;">
-      <h4 class="card-title mt-3 text-center">Create Account</h4>
-      <p class="text-center">Get started with your free account</p>
-    </article>
-    	<form>
-        <div class="form-group input-group">
-          <div class="input-group-prepend">
-              <span class="input-group-text"> <i class="fa fa-user"></i> </span>
-          </div>
-              <input name="" class="form-control" placeholder="Full name" type="text">
-          </div> <!-- form-group// -->
-          <div class="form-group input-group">
-            <div class="input-group-prepend">
-              <span class="input-group-text"> <i class="fa fa-envelope"></i> </span>
-          </div>
-              <input name="" class="form-control" placeholder="Email address" type="email">
-          </div> <!-- form-group// -->
-          <div class="form-group input-group">
-            <div class="input-group-prepend">
-              <span class="input-group-text"> <i class="fa fa-phone"></i> </span>
-          </div>
-          <select class="custom-select" style="max-width: 120px;">
-              <option selected="">+971</option>
-              <option value="1">+972</option>
-              <option value="2">+198</option>
-              <option value="3">+701</option>
-          </select>
-            <input name="" class="form-control" placeholder="Phone number" type="text">
-          </div> <!-- form-group// -->
-          <div class="form-group input-group">
-            <div class="input-group-prepend">
-              <span class="input-group-text"> <i class="fa fa-building"></i> </span>
-          </div>
-          <select class="form-control">
-            <option selected=""> Select job type</option>
-            <option>Designer</option>
-            <option>Manager</option>
-            <option>Accaunting</option>
-          </select>
-        </div> <!-- form-group end.// -->
-          <div class="form-group input-group">
-            <div class="input-group-prepend">
-              <span class="input-group-text"> <i class="fa fa-lock"></i> </span>
-          </div>
-              <input class="form-control" placeholder="Create password" type="password">
-          </div> <!-- form-group// -->
-          <div class="form-group input-group">
-            <div class="input-group-prepend">
-              <span class="input-group-text"> <i class="fa fa-lock"></i> </span>
-          </div>
-              <input class="form-control" placeholder="Repeat password" type="password">
-          </div> <!-- form-group// -->                                      
-          <div class="form-group">
-              <button type="submit" class="btn btn-primary btn-block"> Create Account  </button>
-          </div> <!-- form-group// -->      
-          <p class="text-center">Have an account? <a href="">Log In</a> </p>
-    </form>
-  </div>
+  <form
+    v-on:submit.prevent="onRegister"
+  >
+    <label for="email">Email</label>
+    <input
+      v-model="form.email"
+    />
+    <br/>
+    <label for="password">Password</label>
+    <input
+      type="password"
+      v-model="form.password"
+    />
+    <br/>
+    <label for="password-repeat">Password (confirm)</label>
+    <input
+      type="password"
+      v-model="form.confirm"
+    />
+    <br/>
+    <button>Register</button>
+    <br/>
+    <p
+      v-for="(error, i) in errors"
+      v-bind:key="i"
+      class="error"
+    >{{ error }}</p>
+  </form>
 </template>
 
 <script>
 
 export default {
+  name: 'Registration',
+  title: 'Register a new account',
+
   data () {
     return {
+      form: {
+        email: null,
+        password: null,
+        confirm: null
+      },
+      next: this.$route.params.next || '/confirm',
+      errors: []
+    }
+  },
 
+  methods: {
+    onRegister () {
+      const data = {
+        email: this.form.email,
+        password: this.form.password
+      }
+      this.$store
+        .dispatch('register', data)
+        .then((r) => {
+          this.$router.push({
+            path: this.next,
+            query: { email: r.data.email }
+          })
+        })
+        .catch((e) => {
+          console.log(e.response.data)
+          this.errors.push(e.message)
+        })
     }
   }
 }
 </script>
 
 <style scoped>
-.divider-text {
-    position: relative;
-    text-align: center;
-    margin-top: 15px;
-    margin-bottom: 15px;
-}
-.divider-text span {
-    padding: 7px;
-    font-size: 12px;
-    position: relative;   
-    z-index: 2;
-}
-.divider-text:after {
-    content: "";
-    position: absolute;
-    width: 100%;
-    border-bottom: 1px solid #ddd;
-    top: 55%;
-    left: 0;
-    z-index: 1;
-}
-
-.btn-facebook {
-    background-color: #405D9D;
-    color: #fff;
-}
-.btn-twitter {
-    background-color: #42AEEC;
-    color: #fff;
+.error {
+  color: red;
 }
 </style>

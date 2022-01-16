@@ -23,5 +23,14 @@ lint:
 	${MAKE} -C back lint
 
 
+.PHONY: rebuild
+rebuild:
+	${DOCKER_COMPOSE} stop ${SERVICE}
+	${DOCKER_COMPOSE} rm -f ${SERVICE}
+	${DOCKER_COMPOSE} build ${SERVICE}
+	${DOCKER_COMPOSE} create ${SERVICE}
+	${DOCKER_COMPOSE} start ${SERVICE}
+
+
 .PHONY: ci
 ci: test lint

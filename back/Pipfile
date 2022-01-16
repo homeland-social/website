@@ -24,6 +24,8 @@ celery = "*"
 redis = "*"
 whitenoise = "*"
 django-redis = "*"
+paramiko = "*"
+oauthlib = "*"
 
 [dev-packages]
 flake8 = "*"

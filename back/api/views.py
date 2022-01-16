@@ -1,19 +1,31 @@
 import re
 from pprint import pprint
+from urllib.parse import urlparse, urlunparse
 
 import pycosat
+from oauthlib.oauth2 import WebApplicationServer
+from oauthlib.oauth2.rfc6749 import errors
+from oauthlib.common import quote, urlencoded
 
 from django.conf import settings
+from django.http import HttpResponseRedirect
+from django.core.cache import cache
 from django.dispatch import receiver
 from django.db.models.signals import post_save, post_delete
 from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
+from django.views.decorators.csrf import csrf_exempt
 
 from cache_memoize import cache_memoize
+from rest_framework import status
+from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.generics import CreateAPIView
+from rest_framework.generics import CreateAPIView, RetrieveAPIView
 from rest_framework.decorators import action
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny
+from rest_framework.permissions import (
+    IsAuthenticatedOrReadOnly, AllowAny, IsAuthenticated,
+)
 
 from api.models import (
     Service, ServiceVersion, ServiceConflict, ServiceRequire,
@@ -21,6 +33,7 @@ from api.models import (
 from api.serializers import (
     ServiceSerializer, ServiceVersionSerializer, UserSerializer,
 )
+from api.oauth import OAuthRequestValidator
 
 
 User = get_user_model()
@@ -169,6 +182,30 @@ def suggest():
         print_exp(sorted(solutions, key=lambda x: x[0])[0][1], pre='Final: ')
 
 
+def extract_params(request):
+    def _extract_uri():
+        parsed = list(urlparse(request.get_full_path()))
+        unsafe = set(c for c in parsed[4]).difference(urlencoded)
+        for c in unsafe:
+            parsed[4] = parsed[4].replace(c, quote(c, safe=b''))
+        return urlunparse(parsed)
+
+    def _extract_headers():
+        headers = request.META.copy()
+        for name in ('wsgi.input', 'wsgi.errors'):
+            headers.pop(name, None)
+        if 'HTTP_AUTHORIZATION' in headers:
+            headers['Authorization'] = headers.pop('HTTP_AUTHORIZATION')
+        return headers
+
+    return (
+        _extract_uri(),
+        request.method,
+        request.POST.items(),
+        _extract_headers()
+    )
+
+
 class ServiceViewSet(ModelViewSet):
     queryset = Service.objects.all()
     serializer_class = ServiceSerializer
@@ -221,5 +258,94 @@ class UserCreateView(CreateAPIView):
     permission_classes = [AllowAny]
 
 
+class UserWhoamiView(RetrieveAPIView):
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        return request.user
+
+
 class UserConfirmView(APIView):
-    pass
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        try:
+            email = request.data['email']
+            ts = float(request.data['ts'])
+            signature = request.data['signature']
+
+        except ValueError as e:
+            return Response({ 'ts': 'Is invalid' }, status=status.HTTP_400_BAD_REQUEST)
+        except KeyError as e:
+            return Response({ e.args[0]: 'Is required' }, status=status.HTTP_400_BAD_REQUEST)
+
+        user = get_object_or_404(User, email=email)
+        try:
+            user.validate_confirmation(ts, signature)
+
+        except ValueError as e:
+            return Response({ 'signature': 'Is invalid' }, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({}, status=status.HTTP_200_OK)
+
+
+class OAuthAuthorizationView(APIView):
+    # Singletons.
+    _oauth_validator = OAuthRequestValidator()
+    _oauth_server = WebApplicationServer(_oauth_validator)
+
+    def _make_cache_key(self, request):
+        return f'{request.user}_oauth2_credentials'
+
+    def get(self, request):
+        uri, http_method, body, headers = extract_params(request)
+
+        try:
+            scopes, credentials = \
+                self._oauth_server.validate_authorization_request(
+                    uri, http_method, body, headers
+                )
+
+            cache.set(self._make_cache_key(request), credentials)
+
+            return Response({ client_id: None, scopes: scopes },
+                            status=status.HTTP_200_OK)
+
+        except errors.FatalClientError as e:
+            return Response({ 'error': 'Failure' },
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        except errors.OAuth2Error as e:
+            return HttpResponseRedirect(e.in_uri(e.redirect_uri))
+
+    @csrf_exempt
+    def post(self, request):
+        uri, http_method, body, headers = extract_params(request)
+        scopes = request.data.getlist('scopes')
+        credentials = cache.get(self._make_cache_key(request))
+        credentials['user'] = request.user
+
+        try:
+            headers, body, status = self._oauth_server.create_authorization_response(
+                uri, http_method, body, headers, scopes, credentials,
+            )
+
+            return Response(body, headers=headers, status=status)
+
+        except errors.FatalClientError as e:
+            return Response({ 'error': 'Failure' },
+                            status=status.HTTP_400_BAD_REQUEST)
+
+
+class OAuthTokenView(APIView):
+    # Share singletons from other view.
+    _oauth_validator = OAuthAuthorizationView._oauth_validator
+    _oauth_server = OAuthAuthorizationView._oauth_server
+
+    def post(self, request):
+        uri, http_method, body, headers = extract_params(request)
+        headers, body, status = self._oauth_server.create_token_response(
+            uri, http_method, body, headers, {},
+        )
+        return Response(body, headers=headers, status=status)

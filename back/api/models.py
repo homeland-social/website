@@ -1,8 +1,18 @@
+import time
+import hmac
+import binascii
+
 from pkg_resources import parse_version
 
+from django.conf import settings
 from django.db import models
+from django.utils.http import urlencode
+from django.urls import reverse
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import BaseUserManager
+from django.contrib.postgres.fields import ArrayField
+
+from mail_templated import send_mail
 
 
 class VersionField(models.CharField):
@@ -64,7 +74,7 @@ class User(AbstractUser):
 
     def send_confirmation_email(self):
         params = self.generate_confirmation()
-        url = reverse('api_users_confirm')
+        url = settings.EMAIL_CONFIRM_URL
         url = f'{url}?{urlencode(params)}'
         send_mail(
             'email/user_confirmation.eml',
@@ -81,7 +91,8 @@ class User(AbstractUser):
             raise ValueError('Signature expired')
         if not hmac.compare_digest(sig1, sig2):
             raise ValueError('Invalid signature')
-        User.objects.filter(pk=self.pk).update(is_confirmed=True)
+        User.objects.filter(pk=self.pk).update(
+            is_active=True, is_confirmed=True)
         return True
 
 
@@ -132,6 +143,64 @@ class ServiceConflict(models.Model):
     conflicting = models.ForeignKey(
         ServiceVersion, related_name='conflicts', on_delete=models.CASCADE)
     conflicted = models.ForeignKey(
-        ServiceVersion, related_name='conflicts_with', on_delete=models.CASCADE)
+        ServiceVersion, related_name='conflicts_with',
+        on_delete=models.CASCADE)
+
+
+class SSHKey(models.Model):
+    user = models.ForeignKey(User, db_index=True,
+                             on_delete=models.CASCADE)
+    name = models.CharField(max_length=100, blank=True)
+    key = models.TextField(max_length=2000)
+    keytype = models.CharField(
+        max_length=32, blank=True, help_text="Type of key, e.g. 'ssh-rsa'")
+    fingerprint = models.CharField(max_length=128, blank=True, db_index=True)
+    created = models.DateTimeField(auto_now_add=True)
+    last_modified = models.DateTimeField(auto_now=True)
+
+
+class OAuthClient(models.Model):
+    user = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
+    client_id = models.CharField(max_length=100, unique=True)
+    grant_type = models.CharField(
+        max_length=18,
+        default='authorization_code',
+        choices=[('authorization_code', 'Authorization code')])
+    response_type = models.CharField(
+        max_length=4, choices=[('code', 'Authorization code')])
+    scopes = ArrayField(
+        models.CharField(max_length=16, blank=False))
+    default_scopes = ArrayField(
+        models.CharField(max_length=16, blank=False))
+    redirect_uris = ArrayField(
+        models.URLField(max_length=128, blank=False))
+    default_redirect_uri = models.URLField(max_length=128, null=True)
+
+
+class OAuthToken(models.Model):
+    client = models.ForeignKey(
+        OAuthClient, null=False, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, null=False, on_delete=models.CASCADE)
+    scopes = ArrayField(
+        models.CharField(max_length=16, blank=False))
+    access_token = models.CharField(max_length=100, unique=True, null=False)
+    refresh_token = models.CharField(max_length=100, unique=True, null=False)
+    claims = models.JSONField()
+    expires = models.DateTimeField()
+
+
+class OAuthAuthorizationCode(models.Model):
+    client = models.ForeignKey(
+        OAuthClient, null=False, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, null=False, on_delete=models.CASCADE)
+    scopes = ArrayField(
+        models.CharField(max_length=16, blank=False))
+    redirect_uri = models.URLField(max_length=128, null=True)
+    code = models.CharField(max_length=100, unique=True, null=False)
+    code_state = models.CharField(max_length=100, null=True)
+    challenge = models.CharField(max_length=128, null=True)
+    challenge_method = models.CharField(max_length=6, null=True)
+    claims = models.JSONField()
+    expires = models.DateTimeField()
 
 

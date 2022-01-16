@@ -8,7 +8,7 @@ if [ ! -z "${DJANGO_DEBUG}" ]; then
 fi
 
 if [ -z "${DJANGO_HOST}" ]; then
-    DJANGO_HOST=localhost
+    DJANGO_HOST="0.0.0.0"
 fi
 
 if [ -z "${DJANGO_PORT}" ]; then
