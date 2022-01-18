@@ -31,6 +31,8 @@
 </template>
 
 <script>
+import axios from 'axios'
+
 export default {
   name: 'Confirm',
   title: 'Confirm your email address',
@@ -55,8 +57,7 @@ export default {
 
   methods: {
     onConfirm () {
-      this.$store
-        .dispatch('confirm', this.form)
+      axios.post('/api/users/confirm/', this.form)
         .then((r) => {
           this.$router.push(this.next)
         })

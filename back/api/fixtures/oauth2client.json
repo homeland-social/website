@@ -1,0 +1,20 @@
+[
+  {
+    "model": "api.oauth2client",
+    "pk": 1,
+    "fields": {
+      "user": 1,
+      "client_id": "foobar",
+      "website_uri": "https://foobar.org/foo-bar-baz/",
+      "description": "Lorem ipsum dolor sit amet. Ut galisum ipsa ut eius sequi sit vitae sint vel commodi quia a voluptatem ducimus et minima minus. Vel nulla eaque et quia quidem a similique dolores sit mollitia odio est modi maiores eum ratione sunt. Quo ratione minima ab modi voluptatem et vitae tempora quo ipsum molestiae est adipisci nesciunt eum odit laborum. Quo iusto perferendis ut quos aliquam qui molestiae aperiam.",
+      "client_secret": "baz",
+      "client_name": "Foobar",
+      "redirect_uris": "[\"http://localhost:5000/oauth/\"]",
+      "default_redirect_uri": "http://localhost:5000/",
+      "scope": "[\"read-only\"]",
+      "response_type": "code",
+      "grant_type": "authorization_code",
+      "token_endpoint_auth_method": ""
+    }
+  }
+]

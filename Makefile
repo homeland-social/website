@@ -32,5 +32,10 @@ rebuild:
 	${DOCKER_COMPOSE} start ${SERVICE}
 
 
+.PHONY: clean
+clean:
+	${DOCKER_COMPOSE} rm
+
+
 .PHONY: ci
 ci: test lint

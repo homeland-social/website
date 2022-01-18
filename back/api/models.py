@@ -1,11 +1,16 @@
 import time
 import hmac
 import binascii
+from datetime import timedelta
 
 from pkg_resources import parse_version
+from authlib.oauth2.rfc6749 import (
+    ClientMixin, TokenMixin, AuthorizationCodeMixin,
+)
 
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
 from django.utils.http import urlencode
 from django.urls import reverse
 from django.contrib.auth.models import AbstractUser
@@ -28,6 +33,7 @@ class VersionField(models.CharField):
 
 class UserManager(BaseUserManager):
     def create_user(self, email, password, **kwargs):
+        kwargs.setdefault('is_active', False)
         email = self.normalize_email(email)
         user = self.model(email=email, **kwargs)
         user.set_password(password)
@@ -53,7 +59,7 @@ class User(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
-    username = None
+    username = models.CharField(max_length=32)
     email = models.EmailField('email address', unique=True)
     is_confirmed = models.BooleanField(default=False)
 
@@ -94,18 +100,6 @@ class User(AbstractUser):
         User.objects.filter(pk=self.pk).update(
             is_active=True, is_confirmed=True)
         return True
-
-
-class SSHKey(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    name = models.CharField(max_length=256)
-    pub = models.TextField()
-
-
-class AccessToken(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    name = models.CharField(max_length=256)
-    token = models.CharField(max_length=32)
 
 
 class Service(models.Model):
@@ -155,52 +149,106 @@ class SSHKey(models.Model):
     keytype = models.CharField(
         max_length=32, blank=True, help_text="Type of key, e.g. 'ssh-rsa'")
     fingerprint = models.CharField(max_length=128, blank=True, db_index=True)
-    created = models.DateTimeField(auto_now_add=True)
-    last_modified = models.DateTimeField(auto_now=True)
+    created = models.DateTimeField(default=timezone.now)
+    modified = models.DateTimeField(auto_now=True)
 
 
-class OAuthClient(models.Model):
-    user = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
-    client_id = models.CharField(max_length=100, unique=True)
-    grant_type = models.CharField(
-        max_length=18,
-        default='authorization_code',
-        choices=[('authorization_code', 'Authorization code')])
-    response_type = models.CharField(
-        max_length=4, choices=[('code', 'Authorization code')])
-    scopes = ArrayField(
-        models.CharField(max_length=16, blank=False))
-    default_scopes = ArrayField(
-        models.CharField(max_length=16, blank=False))
-    redirect_uris = ArrayField(
-        models.URLField(max_length=128, blank=False))
-    default_redirect_uri = models.URLField(max_length=128, null=True)
+# https://docs.authlib.org/en/latest/django/2/authorization-server.html
+class OAuth2Client(models.Model, ClientMixin):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    client_id = models.CharField(max_length=48, unique=True, db_index=True)
+    website_uri = models.URLField(max_length=256, null=True)
+    description = models.TextField(null=True)
+    client_secret = models.CharField(max_length=48, null=True)
+    client_name = models.CharField(max_length=120)
+    redirect_uris = ArrayField(models.CharField(max_length=256))
+    default_redirect_uri = models.CharField(max_length=256, null=True)
+    scope = ArrayField(models.CharField(max_length=24))
+    response_type = models.TextField(null=True)
+    grant_type = models.TextField(null=True)
+    token_endpoint_auth_method = models.CharField(max_length=120, null=True)
+
+    def get_client_id(self):
+        return self.client_id
+
+    def get_default_redirect_uri(self):
+        return self.default_redirect_uri
+
+    def get_allowed_scope(self, scope):
+        if not scope:
+            return ''
+        allowed = set(scope_to_list(self.scope))
+        return list_to_scope([s for s in scope.split() if s in allowed])
+
+    def check_redirect_uri(self, redirect_uri):
+        if redirect_uri == self.default_redirect_uri:
+            return True
+        return redirect_uri in self.redirect_uris
+
+    def has_client_secret(self):
+        return bool(self.client_secret)
+
+    def check_client_secret(self, client_secret):
+        return self.client_secret == client_secret
+
+    def check_endpoint_auth_method(self, method, endpoint):
+        if endpoint == 'token':
+          return self.token_endpoint_auth_method == method
+        # TODO: developers can update this check method
+        return True
+
+    def check_response_type(self, response_type):
+        if not self.response_type:
+            return False
+        allowed = self.response_type.split()
+        return response_type in allowed
+
+    def check_grant_type(self, grant_type):
+        allowed = self.grant_type.split()
+        return grant_type in allowed
 
 
-class OAuthToken(models.Model):
-    client = models.ForeignKey(
-        OAuthClient, null=False, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, null=False, on_delete=models.CASCADE)
-    scopes = ArrayField(
-        models.CharField(max_length=16, blank=False))
-    access_token = models.CharField(max_length=100, unique=True, null=False)
-    refresh_token = models.CharField(max_length=100, unique=True, null=False)
-    claims = models.JSONField()
-    expires = models.DateTimeField()
+class OAuth2Token(models.Model, TokenMixin):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    client_id = models.CharField(max_length=48, db_index=True)
+    token_type = models.CharField(max_length=40)
+    access_token = models.CharField(max_length=255, unique=True, null=False)
+    refresh_token = models.CharField(max_length=255, db_index=True)
+    scope = ArrayField(models.CharField(max_length=24))
+    revoked = models.BooleanField(default=False)
+    issued_at = models.DateTimeField(null=False, default=timezone.now)
+    expires_in = models.IntegerField(null=False, default=0)
+
+    def get_client_id(self):
+        return self.client_id
+
+    def get_scope(self):
+        return self.scope
+
+    def get_expires_in(self):
+        return self.expires_in
+
+    def get_expires_at(self):
+        return self.issued_at + timedelta(seconds=self.expires_in)
 
 
-class OAuthAuthorizationCode(models.Model):
-    client = models.ForeignKey(
-        OAuthClient, null=False, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, null=False, on_delete=models.CASCADE)
-    scopes = ArrayField(
-        models.CharField(max_length=16, blank=False))
-    redirect_uri = models.URLField(max_length=128, null=True)
-    code = models.CharField(max_length=100, unique=True, null=False)
-    code_state = models.CharField(max_length=100, null=True)
-    challenge = models.CharField(max_length=128, null=True)
-    challenge_method = models.CharField(max_length=6, null=True)
-    claims = models.JSONField()
-    expires = models.DateTimeField()
+class AuthorizationCode(models.Model, AuthorizationCodeMixin):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    client_id = models.CharField(max_length=48, db_index=True)
+    code = models.CharField(max_length=120, unique=True, null=False)
+    redirect_uri = models.TextField(null=True)
+    response_type = models.TextField(null=True)
+    scope = ArrayField(models.CharField(max_length=24))
+    auth_time = models.DateTimeField(null=False, default=timezone.now)
 
+    def is_expired(self):
+        return self.auth_time + 300 < time.time()
 
+    def get_redirect_uri(self):
+        return self.redirect_uri
+
+    def get_scope(self):
+        return self.scope or ''
+
+    def get_auth_time(self):
+        return self.auth_time

@@ -1,18 +1,16 @@
 import re
+import itertools
 from pprint import pprint
 from urllib.parse import urlparse, urlunparse
 
 import pycosat
-from oauthlib.oauth2 import WebApplicationServer
-from oauthlib.oauth2.rfc6749 import errors
-from oauthlib.common import quote, urlencoded
 
 from django.conf import settings
 from django.http import HttpResponseRedirect
 from django.core.cache import cache
 from django.dispatch import receiver
 from django.db.models.signals import post_save, post_delete
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, login, logout, authenticate
 from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 
@@ -32,8 +30,9 @@ from api.models import (
 )
 from api.serializers import (
     ServiceSerializer, ServiceVersionSerializer, UserSerializer,
+    OAuth2AuthzCodeSerializer,
 )
-from api.oauth import OAuthRequestValidator
+from api.oauth import SERVER
 
 
 User = get_user_model()
@@ -82,19 +81,6 @@ SELECTED_PACKAGES = [
 
 @cache_memoize(60 * 60)
 def get_service_meta():
-    pass
-
-
-@receiver([post_save, post_delete])
-def clear_service_meta(sender, **kwargs):
-    if sender.__class__ in (Service, ServiceVersion, ServiceConflict,
-                            ServiceRequire):
-        get_service_meta.invalidate()
-
-
-def suggest():
-    # NOTE: This algorithm does not take into account the removal of packages
-    # it assumes everything install needs to remain installed.
     pkgs = {}
 
     # Assign each package an id.
@@ -107,18 +93,32 @@ def suggest():
     # Reverse lookups...
     rpkg = {v: n for n, v in pkgs.items()}
 
-    def cnf():
-        # TODO: This first part can be cached, along with pkgs and rpkg.
-        for id, (n, v) in pkgs.items():
-            info = PACKAGES[n][v]
-            vers = [k for k in PACKAGES[n].keys() if k != v]
-            for o in vers:
-                yield [-id, -rpkg[(n, o)]]
-            for c in info.get('conflicts', ()):
-                yield [-id, -rpkg[c]]
-            for r in info.get('requires', ()):
-                yield [-id, rpkg[r]]
+    # This preamble can be cached.
+    states = []
+    for id, (n, v) in pkgs.items():
+        info = PACKAGES[n][v]
+        vers = [k for k in PACKAGES[n].keys() if k != v]
+        for o in vers:
+            states.append([-id, -rpkg[(n, o)]])
+        for c in info.get('conflicts', ()):
+            states.append([-id, -rpkg[c]])
+        for r in info.get('requires', ()):
+            states.append([-id, rpkg[r]])
 
+    return pkgs, rpkg, states
+
+
+@receiver([post_save, post_delete])
+def clear_service_meta(sender, **kwargs):
+    if sender.__class__ in (Service, ServiceVersion, ServiceConflict,
+                            ServiceRequire):
+        get_service_meta.invalidate()
+
+
+def suggest():
+    # NOTE: This algorithm does not take into account the removal of packages
+    # it assumes everything installed needs to remain installed.
+    def cnf():
         # NOTE: These are user-specific.
         for n, v in INSTALLED_PACKAGES:
             # TODO: Only _NEWER_ versions should be considered...
@@ -138,7 +138,7 @@ def suggest():
             else:
                 yield [rpkg[(n, v)]]
 
-    def print_exp(exp, pre=''):
+    def _print_exp(exp, pre=''):
         def _format(id):
             sign = '+' if id > 0 else '-'
             n, v = pkgs[abs(id)]
@@ -146,9 +146,9 @@ def suggest():
 
         print(pre + ', '.join([_format(id) for id in exp]))
 
-    def debug(cnf):
+    def _debug(cnf):
         for exp in cnf:
-            print_exp(exp, pre='Repo: ')
+            _print_exp(exp, pre='Repo: ')
             yield exp
 
     def calc_cost(sol):
@@ -168,9 +168,11 @@ def suggest():
                 cost -= int(''.join([a for a in v if a.isdigit()]))
         return cost, sol
 
-    data = cnf()
+    pkgs, rpkg, states = get_service_meta()
+
+    data = itertools.chain(states, cnf())
     if settings.DEBUG:
-        data = debug(data)
+        data = _debug(data)
 
     solutions = []
     for sol in pycosat.itersolve(data):
@@ -180,30 +182,6 @@ def suggest():
 
     if solutions:
         print_exp(sorted(solutions, key=lambda x: x[0])[0][1], pre='Final: ')
-
-
-def extract_params(request):
-    def _extract_uri():
-        parsed = list(urlparse(request.get_full_path()))
-        unsafe = set(c for c in parsed[4]).difference(urlencoded)
-        for c in unsafe:
-            parsed[4] = parsed[4].replace(c, quote(c, safe=b''))
-        return urlunparse(parsed)
-
-    def _extract_headers():
-        headers = request.META.copy()
-        for name in ('wsgi.input', 'wsgi.errors'):
-            headers.pop(name, None)
-        if 'HTTP_AUTHORIZATION' in headers:
-            headers['Authorization'] = headers.pop('HTTP_AUTHORIZATION')
-        return headers
-
-    return (
-        _extract_uri(),
-        request.method,
-        request.POST.items(),
-        _extract_headers()
-    )
 
 
 class ServiceViewSet(ModelViewSet):
@@ -252,18 +230,38 @@ class ServiceVersionViewSet(ModelViewSet):
         pass
 
 
+class UserLoginView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        email = request.data['email']
+        password = request.data['password']
+        user = authenticate(request, email=email, password=password)
+        if user is None:
+            return Response('', status=status.HTTP_401_UNAUTHORIZED)
+        login(request, user)
+        serializer = UserSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class UserLogoutView(APIView):
+    def post(self, request):
+        logout(request)
+        return Response('', status=status.HTTP_204_NO_CONTENT)
+
+
 class UserCreateView(CreateAPIView):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
     permission_classes = [AllowAny]
 
 
 class UserWhoamiView(RetrieveAPIView):
-    serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        return request.user
+        user = get_object_or_404(User, pk=request.user.id)
+        serializer = UserSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class UserConfirmView(APIView):
@@ -291,61 +289,18 @@ class UserConfirmView(APIView):
 
 
 class OAuthAuthorizationView(APIView):
-    # Singletons.
-    _oauth_validator = OAuthRequestValidator()
-    _oauth_server = WebApplicationServer(_oauth_validator)
-
-    def _make_cache_key(self, request):
-        return f'{request.user}_oauth2_credentials'
-
     def get(self, request):
-        uri, http_method, body, headers = extract_params(request)
-
-        try:
-            scopes, credentials = \
-                self._oauth_server.validate_authorization_request(
-                    uri, http_method, body, headers
-                )
-
-            cache.set(self._make_cache_key(request), credentials)
-
-            return Response({ client_id: None, scopes: scopes },
-                            status=status.HTTP_200_OK)
-
-        except errors.FatalClientError as e:
-            return Response({ 'error': 'Failure' },
-                            status=status.HTTP_400_BAD_REQUEST)
-
-        except errors.OAuth2Error as e:
-            return HttpResponseRedirect(e.in_uri(e.redirect_uri))
+        grant = SERVER.validate_consent_request(request)
+        serializer = OAuth2AuthzCodeSerializer(grant)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @csrf_exempt
     def post(self, request):
-        uri, http_method, body, headers = extract_params(request)
-        scopes = request.data.getlist('scopes')
-        credentials = cache.get(self._make_cache_key(request))
-        credentials['user'] = request.user
-
-        try:
-            headers, body, status = self._oauth_server.create_authorization_response(
-                uri, http_method, body, headers, scopes, credentials,
-            )
-
-            return Response(body, headers=headers, status=status)
-
-        except errors.FatalClientError as e:
-            return Response({ 'error': 'Failure' },
-                            status=status.HTTP_400_BAD_REQUEST)
+        is_confirmed = request.data.get('confirm', None) == 'true'
+        user = request.user if is_confirmed else None
+        return SERVER.create_authorization_response(request, grant_user=user)
 
 
 class OAuthTokenView(APIView):
-    # Share singletons from other view.
-    _oauth_validator = OAuthAuthorizationView._oauth_validator
-    _oauth_server = OAuthAuthorizationView._oauth_server
-
     def post(self, request):
-        uri, http_method, body, headers = extract_params(request)
-        headers, body, status = self._oauth_server.create_token_response(
-            uri, http_method, body, headers, {},
-        )
-        return Response(body, headers=headers, status=status)
+        return SERVER.create_token_response(request)

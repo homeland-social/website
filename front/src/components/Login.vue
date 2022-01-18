@@ -42,7 +42,7 @@ export default {
   methods: {
     onLogin () {
       this.$store
-        .dispatch('login', this.form)
+        .dispatch('auth/login', this.form)
         .then(() => {
           this.$router.push(this.next)
         })

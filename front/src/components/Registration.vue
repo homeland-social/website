@@ -2,6 +2,11 @@
   <form
     v-on:submit.prevent="onRegister"
   >
+    <label for="username">Username</label>
+    <input
+      v-model="form.username"
+    />
+    <br/>
     <label for="email">Email</label>
     <input
       v-model="form.email"
@@ -30,6 +35,7 @@
 </template>
 
 <script>
+import axios from 'axios'
 
 export default {
   name: 'Registration',
@@ -38,6 +44,7 @@ export default {
   data () {
     return {
       form: {
+        username: null,
         email: null,
         password: null,
         confirm: null
@@ -50,11 +57,13 @@ export default {
   methods: {
     onRegister () {
       const data = {
+        username: this.form.username,
         email: this.form.email,
         password: this.form.password
       }
-      this.$store
-        .dispatch('register', data)
+
+      axios
+        .post('/api/users/create/', data)
         .then((r) => {
           this.$router.push({
             path: this.next,

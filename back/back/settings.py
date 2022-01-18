@@ -186,6 +186,7 @@ CELERY_ALWAYS_EAGER = TEST
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.SessionAuthentication',
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
@@ -209,3 +210,6 @@ ACME_KEY_BITS = 2048
 ACME_PKEY_BITS = 2048
 
 ADMIN_ENABLED = False
+FIXTURE_DIRS = [
+    Path(BASE_DIR).joinpath('api', 'fixtures'),
+]

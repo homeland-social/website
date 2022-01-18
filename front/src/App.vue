@@ -11,7 +11,7 @@
             <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#">Features</a>
+            <Logout/>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="#">Pricing</a>
@@ -27,9 +27,15 @@
 </template>
 
 <script>
+import Logout from '@/components/Logout'
+
 export default {
   name: 'App',
-  title: 'Home'
+  title: 'Home',
+
+  components: {
+    Logout
+  }
 }
 </script>
 

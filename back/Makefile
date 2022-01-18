@@ -13,8 +13,7 @@ deps: .venv
 
 .PHONY: test
 test: deps
-	pipenv run python3 manage.py test
-
+	${DOCKER_COMPOSE} run --rm --entrypoint="python3 manage.py test" back
 
 .PHONY: lint
 lint: deps
@@ -33,9 +32,9 @@ migrate:
 
 .PHONY: resetdb
 resetdb:
-	${DOCKER_COMPOSE} run migrate python manage.py reset_db --noinput
+	${DOCKER_COMPOSE} run --entrypoint="python3 manage.py reset_db --noinput" migrate
 
 
 .PHONY: shell
 shell:
-	${DOCKER_COMPOSE} run migrate python manage.py shell
+	${DOCKER_COMPOSE} run --entrypoint="python3 manage.py shell" migrate
