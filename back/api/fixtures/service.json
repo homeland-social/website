@@ -1,0 +1,25 @@
+[
+    {
+        "model": "api.service",
+        "pk": 1,
+        "fields": {
+        "uuid": "85a0fb4d-f4b3-424c-b982-c17717d1b121",
+        "name": "conduit",
+        "description": "Tunnels website traffic via encrypted channel.",
+        "group": "system",
+        "logo": null,
+        "created": "2022-01-19T22:06:00.557Z"
+        }
+    },
+    {
+        "model": "api.serviceversion",
+        "pk": 1,
+        "fields": {
+        "service": 1,
+        "version": "0.9.0",
+        "image_name": "shantysocial/baccawl-client",
+        "image_tag": "1640381720",
+        "created": "2022-01-19T22:06:57.907Z"
+        }
+    }
+]

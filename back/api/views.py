@@ -15,7 +15,7 @@ from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 
 from cache_memoize import cache_memoize
-from rest_framework import status
+from rest_framework import status, permissions
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.generics import CreateAPIView, RetrieveAPIView
@@ -30,7 +30,7 @@ from api.models import (
 )
 from api.serializers import (
     ServiceSerializer, ServiceVersionSerializer, UserSerializer,
-    OAuth2AuthzCodeSerializer,
+    OAuth2AuthzCodeSerializer, CreateUserSerializer,
 )
 from api.oauth import SERVER
 
@@ -115,6 +115,13 @@ def clear_service_meta(sender, **kwargs):
         get_service_meta.invalidate()
 
 
+class IsAdminOrReadOnly(permissions.BasePermission):
+    def has_permission(self, request, view):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        return getattr(request.user, 'is_admin', False)
+
+
 def suggest():
     # NOTE: This algorithm does not take into account the removal of packages
     # it assumes everything installed needs to remain installed.
@@ -187,23 +194,31 @@ def suggest():
 class ServiceViewSet(ModelViewSet):
     queryset = Service.objects.all()
     serializer_class = ServiceSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAdminOrReadOnly]
     lookup_field = 'uuid'
-    lookup_value_regex = '[0-9a-f]{32}'
+    lookup_value_regex = '[0-9a-f\-]{36}'
 
     def list(self, request):
-        pass
+        services = self.get_queryset()
+        serializer = self.serializer_class(services, many=True)
+        return Response(serializer.data)
 
-    def retrieve(self, request):
-        pass
+    def retrieve(self, request, uuid=None):
+        service = get_object_or_404(Service, uuid=uuid)
+        serializer = self.serializer_class(service)
+        return Response(serializer.data)
 
     def create(self, request):
-        pass
+        service = Service.objects.create(**request.data)
+        serializer = self.serializer_class(service)
+        return Response(serializer.data)
 
     def delete(self, request):
-        pass
+        service = get_object_or_404(Service, uuid=uuid)
+        service.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=False, methods=['POST'], permission_classes=[AllowAny])
+    @action(detail=False, methods=['POST'], permission_classes=[IsAuthenticated])
     def suggest(self, request):
         installed_packages = self.data.get('installed')
         selected_packages = self.data.get('selected')
@@ -211,26 +226,38 @@ class ServiceViewSet(ModelViewSet):
 
 
 class ServiceVersionViewSet(ModelViewSet):
-    queryset = Service.objects.all()
+    queryset = ServiceVersion.objects.all()
     serializer_class = ServiceVersionSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAdminOrReadOnly]
     lookup_field = 'version'
-    lookup_value_regex = '[0-9\.]'
+    lookup_value_regex = '[0-9\.]+'
 
-    def list(self, pk, request):
-        pass
+    def list(self, request, uuid=None):
+        service = get_object_or_404(Service, uuid=uuid)
+        serializer = self.serializer_class(service.versions.all(), many=True)
+        return Response(serializer.data)
 
-    def retrieve(self, pk, request):
-        pass
+    def retrieve(self, request, uuid=None, version=None):
+        service = get_object_or_404(Service, uuid=uuid)
+        version = get_object_or_404(ServiceVersion, service=service, version=version)
+        serializer = self.serializer_class(version)
+        return Response(serializer.data)
 
-    def create(self, pk, request):
-        pass
+    def create(self, request, uuid=None):
+        service = get_object_or_404(Service, uuid=uuid)
+        version = ServiceVersion.objects.create(service=service, **request.data)
+        serializer = self.serializer_class(version)
+        return Response(serializer.data)
 
     def delete(self, pk, request):
-        pass
+        service = get_object_or_404(Service, uuid=uuid)
+        version = get_object_or_404(ServiceVersion, service=service, version=version)
+        version.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class UserLoginView(APIView):
+    serializer_class = UserSerializer
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -240,7 +267,7 @@ class UserLoginView(APIView):
         if user is None:
             return Response('', status=status.HTTP_401_UNAUTHORIZED)
         login(request, user)
-        serializer = UserSerializer(user)
+        serializer = self.serializer_class(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -252,7 +279,18 @@ class UserLogoutView(APIView):
 
 class UserCreateView(CreateAPIView):
     queryset = User.objects.all()
+    serializer_class = CreateUserSerializer
     permission_classes = [AllowAny]
+
+    def create(self, request):
+        user = User.objects.create_user(
+            request.data['email'],
+            request.data['password'],
+            username=request.data['username']
+        )
+        user.send_confirmation_email(request)
+        serializer = UserSerializer(user)
+        return Response(serializer.data)
 
 
 class UserWhoamiView(RetrieveAPIView):
@@ -285,7 +323,8 @@ class UserConfirmView(APIView):
         except ValueError as e:
             return Response({ 'signature': 'Is invalid' }, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response({}, status=status.HTTP_200_OK)
+        next = request.query.get('next', '/#/login')
+        return HttpResponseRedirect(next)
 
 
 class OAuthAuthorizationView(APIView):
@@ -297,6 +336,7 @@ class OAuthAuthorizationView(APIView):
     def post(self, request):
         is_confirmed = request.data.get('confirm') == 'true'
         user = request.user if is_confirmed else None
+        # NOTE: returns a redirect, no serialization necessary.
         return SERVER.create_authorization_response(request, grant_user=user)
 
 
@@ -304,6 +344,4 @@ class OAuthTokenView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        print(request.data)
-        print(request.headers)
         return SERVER.create_token_response(request)

@@ -7,7 +7,6 @@ name = "pypi"
 django = "*"
 django-extensions = "*"
 djangorestframework = "*"
-djangorestframework-simplejwt = "*"
 django-cache-memoize = "*"
 django-powerdns = {ref = "0d630d8", git = "https://btimby@bitbucket.org/btimby/django-powerdns.git"}
 django-mailjet = "*"
@@ -25,6 +24,7 @@ whitenoise = "*"
 django-redis = "*"
 paramiko = "*"
 authlib = "*"
+djangorestframework-recaptcha = "*"
 
 [dev-packages]
 flake8 = "*"

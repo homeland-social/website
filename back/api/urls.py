@@ -10,8 +10,8 @@ from api.views import (
 
 
 router = routers.SimpleRouter()
-router.register(r'services/', ServiceViewSet, basename='service')
-router.register(r'services/<uuid>/', ServiceVersionViewSet, basename='serviceversion')
+router.register(r'services', ServiceViewSet, basename='service')
+router.register(r'services/(?P<uuid>[0-9a-f\-]{36})/versions', ServiceVersionViewSet, basename='serviceversion')
 
 urlpatterns = [
     path(

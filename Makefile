@@ -58,5 +58,15 @@ resetmigrations:
 	$(MAKE) -C back resetmigrations
 
 
+.PHONY: migrate
+migrate:
+	$(MAKE) -C back migrate
+
+
+.PHONY: fixtures
+fixtures:
+	$(MAKE) -C back fixtures
+
+
 .PHONY: ci
 ci: test lint

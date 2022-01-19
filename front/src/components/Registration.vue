@@ -24,6 +24,11 @@
       v-model="form.confirm"
     />
     <br/>
+    <vue-recaptcha
+      :sitekey="recaptchaSiteKey"
+      @verify="onVerify"
+    />
+    <br/>
     <button>Register</button>
     <br/>
     <p
@@ -36,10 +41,16 @@
 
 <script>
 import axios from 'axios'
+import { VueRecaptcha } from 'vue-recaptcha'
+import config from '@/config'
 
 export default {
   name: 'Registration',
   title: 'Register a new account',
+
+  components: {
+    VueRecaptcha
+  },
 
   data () {
     return {
@@ -47,19 +58,26 @@ export default {
         username: null,
         email: null,
         password: null,
-        confirm: null
+        confirm: null,
+        recaptcha: null
       },
       next: this.$route.params.next || '/confirm',
+      recaptchaSiteKey: config.RECAPTCHA_SITE_KEY,
       errors: []
     }
   },
 
   methods: {
+    onVerify (response) {
+      this.form.recaptcha = response
+    },
+
     onRegister () {
       const data = {
         username: this.form.username,
         email: this.form.email,
-        password: this.form.password
+        password: this.form.password,
+        recaptcha: this.form.recaptcha
       }
 
       axios

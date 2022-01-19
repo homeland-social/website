@@ -5,6 +5,7 @@ from datetime import timedelta
 from uuid import uuid4
 
 from pkg_resources import parse_version
+from pkg_resources.extern.packaging.version import Version
 from authlib.oauth2.rfc6749 import (
     ClientMixin, TokenMixin, AuthorizationCodeMixin,
 )
@@ -32,13 +33,21 @@ TOKEN_AUTH_METHODS = [
 
 class VersionField(models.CharField):
     def from_db_value(self, value, expression, connection):
-        return str(value)
+        if value is None:
+            return value
+        return parse_version(value)
 
     def to_python(self, value):
+        if isinstance(value, Version):
+            return value
+
         if value is None:
             return value
 
         return parse_version(value)
+
+    def get_prep_value(self, value):
+        return str(value)
 
 
 class UserManager(BaseUserManager):
@@ -47,7 +56,6 @@ class UserManager(BaseUserManager):
         email = self.normalize_email(email)
         user = self.model(email=email, **kwargs)
         user.set_password(password)
-        user.send_confirmation_email()
         user.save()
         return user
 
@@ -88,10 +96,10 @@ class User(AbstractUser):
             'signature': signature,
         }
 
-    def send_confirmation_email(self):
+    def send_confirmation_email(self, request):
         params = self.generate_confirmation()
-        url = settings.EMAIL_CONFIRM_URL
-        url = f'{url}?{urlencode(params)}'
+        url = request.build_absolute_url(reverse('api_users_confirm'))
+        url += '?' + urlencode(params)
         send_mail(
             'email/user_confirmation.eml',
             { 'url': url },
@@ -113,21 +121,21 @@ class User(AbstractUser):
 
 
 class Service(models.Model):
-    uuid = models.UUIDField()
-    created = models.DateTimeField()
+    uuid = models.CharField(max_length=36, default=uuid4, unique=True)
     name = models.CharField(unique=True, max_length=32)
-    group = models.CharField(max_length=32)
-    logo = models.URLField()
     description = models.TextField()
+    group = models.CharField(max_length=32)
+    logo = models.URLField(null=True)
+    created = models.DateTimeField(null=False, auto_now_add=True)
 
 
 class ServiceVersion(models.Model):
     service = models.ForeignKey(
         Service, related_name='versions', on_delete=models.CASCADE)
-    created = models.DateTimeField()
     version = VersionField(max_length=16)
     image_name = models.CharField(max_length=64)
     image_tag = models.CharField(max_length=16)
+    created = models.DateTimeField(null=False, auto_now_add=True)
 
 
 class ServiceRequire(models.Model):
@@ -166,7 +174,7 @@ class SSHKey(models.Model):
 # https://docs.authlib.org/en/latest/django/2/authorization-server.html
 class OAuth2Client(models.Model, ClientMixin):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    client_id = models.CharField(max_length=36, default=uuid4, unique=True, db_index=True)
+    client_id = models.CharField(max_length=36, default=uuid4, unique=True)
     client_secret = models.CharField(max_length=36, default=uuid4, null=False)
     client_name = models.CharField(max_length=120)
     website_uri = models.URLField(max_length=256, null=True)

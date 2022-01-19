@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_extensions',
     'django_celery_beat',
+    'rest_framework_recaptcha',
     'djcelery_email',
     'mail_templated',
     'powerdns',
@@ -213,3 +214,5 @@ ADMIN_ENABLED = False
 FIXTURE_DIRS = [
     Path(BASE_DIR).joinpath('api', 'fixtures'),
 ]
+
+DRF_RECAPTCHA_SECRET_KEY = os.getenv('DJANGO_RECAPTCHA_SECRET_KEY', '')
