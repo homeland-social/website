@@ -1,7 +1,13 @@
 <template>
   <form
-    v-on:submit.prevent="onLogin"
+    method="POST"
+    :action="formAction"
   >
+    <input
+      type="hidden"
+      name="csrfmiddlewaretoken"
+      :value="csrfToken"
+    />
     <h4>{{ client.client_name }}</h4>
     <p><em>By:</em>{{ client.user.username }}</p>
     <a
@@ -18,9 +24,9 @@
     </ul>
     <label for="email">Email</label>
     <input
+      name="confirm"
       type="checkbox"
       value="true"
-      v-model="form.confirm"
     />
     <br/>
     <button>Grant access</button>
@@ -34,6 +40,7 @@
 </template>
 
 <script>
+import Cookies from 'js-cookie'
 import axios from 'axios'
 
 export default {
@@ -42,9 +49,7 @@ export default {
 
   data () {
     return {
-      form: {
-        confirm: null
-      },
+      params: this.$route.query,
       client: null,
       errors: []
     }
@@ -52,33 +57,19 @@ export default {
 
   mounted () {
     axios
-      .get('/api/oauth2/authorize/', {
-        params: {
-          client_id: 'foobar',
-          response_type: 'code',
-          redirect_uri: 'http://localhost:5000/oauth/'
-        }
-      })
+      .get('/api/oauth2/authorize/', { params: this.params })
       .then((r) => {
         this.client = r.data.client
       })
   },
 
-  methods: {
-    onLogin () {
-      axios
-        .post('/api/oauth2/authorize/', this.form, {
-          params: {
-            client_id: 'foobar',
-            response_type: 'code',
-            redirect_uri: 'http://localhost:5000/oauth/'
-          }
-        })
-        .then((r) => {
-          if (r.statusCode === 302) {
-            window.location = r.headers['Location']
-          }
-        })
+  computed: {
+    formAction () {
+      return `/api/oauth2/authorize/?client_id=${this.params.client_id}&response_type=${this.params.response_type}&redirect_uri=${this.params.redirect_uri}`
+    },
+
+    csrfToken () {
+      return Cookies.get('csrftoken')
     }
   }
 }

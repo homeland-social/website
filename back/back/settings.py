@@ -63,7 +63,6 @@ INSTALLED_APPS = [
     'mail_templated',
     'powerdns',
     'rest_framework',
-    'rest_framework_simplejwt',
     'api',
 ]
 

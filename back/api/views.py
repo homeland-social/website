@@ -294,9 +294,8 @@ class OAuthAuthorizationView(APIView):
         serializer = OAuth2AuthzCodeSerializer(grant)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @csrf_exempt
     def post(self, request):
-        is_confirmed = request.data.get('confirm', None) == 'true'
+        is_confirmed = request.data.get('confirm') == 'true'
         user = request.user if is_confirmed else None
         return SERVER.create_authorization_response(request, grant_user=user)
 

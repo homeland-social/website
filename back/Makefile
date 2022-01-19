@@ -2,6 +2,7 @@ PIPRUN = pipenv run python
 DOCKER = docker
 DOCKER_COMPOSE = docker-compose
 
+
 .venv: Pipfile
 	PIPENV_VENV_IN_PROJECT=true pipenv install --dev
 	touch .venv
@@ -30,9 +31,20 @@ migrate:
 	${DOCKER_COMPOSE} run migrate
 
 
+.PHONY: fixtures
+fixtures:
+	${DOCKER_COMPOSE} run --entrypoint="python3 manage.py loaddata --app api user oauth2client" migrate
+
+
 .PHONY: resetdb
 resetdb:
 	${DOCKER_COMPOSE} run --entrypoint="python3 manage.py reset_db --noinput" migrate
+
+
+.PHONY: resetmigrations
+resetmigrations:
+	rm api/migrations/00*.py
+	${MAKE} migrations
 
 
 .PHONY: shell

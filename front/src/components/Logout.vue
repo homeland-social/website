@@ -1,12 +1,14 @@
 <template>
   <a
     href="#"
-    class="nav-link"
+    :class="{ 'nav-link': true, 'disabled': !isAuthenticated }"
     @click.prevent="onLogout"
   >Logout</a>
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
+
 export default {
   name: 'Logout',
 
@@ -17,6 +19,10 @@ export default {
         this.$router.push('/home')
       }
     }
+  },
+
+  computed: {
+    ...mapGetters({ isAuthenticated: 'auth/isAuthenticated' })
   }
 }
 </script>

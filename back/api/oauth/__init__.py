@@ -2,7 +2,7 @@ from authlib.integrations.django_oauth2 import AuthorizationServer
 from authlib.oauth2.rfc6749 import grants
 from authlib.common.security import generate_token
 
-from api.models import OAuth2Client, OAuth2Token
+from api.models import OAuth2Client, OAuth2Token, OAuth2Code
 
 
 SERVER = AuthorizationServer(OAuth2Client, OAuth2Token)
@@ -10,17 +10,14 @@ SERVER = AuthorizationServer(OAuth2Client, OAuth2Token)
 
 class AuthorizationCodeGrant(grants.AuthorizationCodeGrant):
     def save_authorization_code(self, code, request):
-        client = request.client
-        auth_code = AuthorizationCode(
+        return OAuth2Code.objects.create(
             code=code,
-            client_id=client.client_id,
+            client_id=request.client.client_id,
             redirect_uri=request.redirect_uri,
             response_type=request.response_type,
-            scope=request.scope,
+            scope=request.client.scope,
             user=request.user,
         )
-        auth_code.save()
-        return auth_code
 
     def query_authorization_code(self, code, client):
         try:

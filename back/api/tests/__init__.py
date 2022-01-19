@@ -1,21 +1,19 @@
 from django.test import TestCase, Client
 from django.urls import reverse
 
+from rest_framework.test import APIClient
 
-class AuthenticatedTestCase(TestCase):
+
+class APITestCase(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+
+
+class AuthenticatedTestCase(APITestCase):
     # Make sure a user exists in the database.
     fixtures = [
         'user.json',
     ]
 
     def setUp(self):
-        # Obtain token and attach to test client.
-        r = self.client.post(
-            reverse('token_obtain_pair_view'),
-            {
-                'email': 'test@test.org',
-                'password': 'password',
-            },
-        )
-        token = r.json()['access']
-        self.client = Client(HTTP_AUTHORIZATION=f'Bearer {token}')
+        self.client.login(email='test@test.org', password='password')

@@ -2,6 +2,7 @@ import time
 import hmac
 import binascii
 from datetime import timedelta
+from uuid import uuid4
 
 from pkg_resources import parse_version
 from authlib.oauth2.rfc6749 import (
@@ -156,14 +157,14 @@ class SSHKey(models.Model):
 # https://docs.authlib.org/en/latest/django/2/authorization-server.html
 class OAuth2Client(models.Model, ClientMixin):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    client_id = models.CharField(max_length=48, unique=True, db_index=True)
+    client_id = models.UUIDField(default=uuid4, unique=True, db_index=True)
+    client_secret = models.UUIDField(default=uuid4, null=False)
+    client_name = models.CharField(max_length=120)
     website_uri = models.URLField(max_length=256, null=True)
     description = models.TextField(null=True)
-    client_secret = models.CharField(max_length=48, null=True)
-    client_name = models.CharField(max_length=120)
     redirect_uris = ArrayField(models.CharField(max_length=256))
     default_redirect_uri = models.CharField(max_length=256, null=True)
-    scope = ArrayField(models.CharField(max_length=24))
+    scope = ArrayField(models.CharField(max_length=24), null=True)
     response_type = models.TextField(null=True)
     grant_type = models.TextField(null=True)
     token_endpoint_auth_method = models.CharField(max_length=120, null=True)
@@ -213,8 +214,8 @@ class OAuth2Token(models.Model, TokenMixin):
     client_id = models.CharField(max_length=48, db_index=True)
     token_type = models.CharField(max_length=40)
     access_token = models.CharField(max_length=255, unique=True, null=False)
-    refresh_token = models.CharField(max_length=255, db_index=True)
-    scope = ArrayField(models.CharField(max_length=24))
+    refresh_token = models.CharField(max_length=255, db_index=True, null=False)
+    scope = ArrayField(models.CharField(max_length=24), null=True)
     revoked = models.BooleanField(default=False)
     issued_at = models.DateTimeField(null=False, default=timezone.now)
     expires_in = models.IntegerField(null=False, default=0)
@@ -232,13 +233,13 @@ class OAuth2Token(models.Model, TokenMixin):
         return self.issued_at + timedelta(seconds=self.expires_in)
 
 
-class AuthorizationCode(models.Model, AuthorizationCodeMixin):
+class OAuth2Code(models.Model, AuthorizationCodeMixin):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     client_id = models.CharField(max_length=48, db_index=True)
     code = models.CharField(max_length=120, unique=True, null=False)
     redirect_uri = models.TextField(null=True)
     response_type = models.TextField(null=True)
-    scope = ArrayField(models.CharField(max_length=24))
+    scope = ArrayField(models.CharField(max_length=24), null=True)
     auth_time = models.DateTimeField(null=False, default=timezone.now)
 
     def is_expired(self):

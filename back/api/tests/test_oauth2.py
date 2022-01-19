@@ -3,6 +3,12 @@ from django.urls import reverse
 from . import AuthenticatedTestCase
 
 
+AUTHZ_PARAMS = {
+    'response_type': 'code',
+    'client_id': '19bbc55f-0f6f-4fca-95bc-f86286db43da',
+    'redirect_uri': 'http://localhost:5000/',
+}
+
 AUTHZ_RESPONSE = {
     'client': {
         'user': {
@@ -23,10 +29,18 @@ class OAuth2TestCase(AuthenticatedTestCase):
         'oauth2client.json',
     ]
 
-    def test_authorize(self):
-        params = {
-            'response_type': 'code',
-            'client_id': 'foobar',
-        }
-        r = self.client.get(reverse('oauth_authorize_view'), params, secure=True)
+    def test_authorize_get(self):
+        r = self.client.get(reverse('oauth_authorize_view'), AUTHZ_PARAMS, secure=True)
         self.assertEqual(AUTHZ_RESPONSE, r.json())
+
+    def test_authorize_post_deny(self):
+        r = self.client.post(reverse('oauth_authorize_view'), AUTHZ_PARAMS, secure=True)
+        self.assertEqual(302, r.status_code)
+        self.assertIn('denied', r.headers['location'])
+
+    def test_authorize_post_authorize(self):
+        params = AUTHZ_PARAMS.copy()
+        params['confirm'] = 'true'
+        r = self.client.post(reverse('oauth_authorize_view'), params, secure=True)
+        self.assertEqual(302, r.status_code)
+        self.assertIn('code', r.headers['location'])
