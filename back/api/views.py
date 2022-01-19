@@ -305,11 +305,11 @@ class UserWhoamiView(RetrieveAPIView):
 class UserConfirmView(APIView):
     permission_classes = [AllowAny]
 
-    def post(self, request):
+    def get(self, request):
         try:
-            email = request.data['email']
-            ts = float(request.data['ts'])
-            signature = request.data['signature']
+            email = request.query_params['email']
+            ts = float(request.query_params['ts'])
+            signature = request.query_params['signature']
 
         except ValueError as e:
             return Response({ 'ts': 'Is invalid' }, status=status.HTTP_400_BAD_REQUEST)
@@ -323,7 +323,7 @@ class UserConfirmView(APIView):
         except ValueError as e:
             return Response({ 'signature': 'Is invalid' }, status=status.HTTP_400_BAD_REQUEST)
 
-        next = request.query.get('next', '/#/login')
+        next = request.query_params.get('next', '/#/login')
         return HttpResponseRedirect(next)
 
 

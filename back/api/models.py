@@ -98,7 +98,7 @@ class User(AbstractUser):
 
     def send_confirmation_email(self, request):
         params = self.generate_confirmation()
-        url = request.build_absolute_url(reverse('api_users_confirm'))
+        url = request.build_absolute_uri(reverse('api_users_confirm'))
         url += '?' + urlencode(params)
         send_mail(
             'email/user_confirmation.eml',

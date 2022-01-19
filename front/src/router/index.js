@@ -3,7 +3,6 @@ import Router from 'vue-router'
 import store from '@/store'
 import Login from '@/components/Login'
 import Registration from '@/components/Registration'
-import Confirm from '@/components/Confirm'
 import Account from '@/components/Account'
 import Authorize from '@/components/Authorize'
 
@@ -37,11 +36,6 @@ const router = new Router({
       path: '/registration',
       name: 'Registration',
       component: Registration
-    },
-    {
-      path: '/confirm',
-      name: 'Confirm',
-      component: Confirm
     },
     {
       path: '/account',
