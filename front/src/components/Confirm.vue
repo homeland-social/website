@@ -38,13 +38,14 @@ export default {
   title: 'Confirm your email address',
 
   data () {
+    let next = this.$route.query.next
+    if (next) {
+      next = decodeURI(next)
+    }
+
     return {
-      form: {
-        email: this.$route.query.email,
-        ts: this.$route.query.ts,
-        signature: this.$route.query.signature
-      },
-      next: this.$route.query.next || '/login',
+      form: this.$route.query,
+      next: next || '/login',
       errors: []
     }
   },
@@ -62,7 +63,7 @@ export default {
           this.$router.push(this.next)
         })
         .catch((e) => {
-          this.errors.push(e.message)
+          this.errors[0] = e.message
         })
     }
   }

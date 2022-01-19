@@ -12,11 +12,18 @@ import { mapGetters } from 'vuex'
 export default {
   name: 'Logout',
 
+  props: {
+    next: {
+      type: String,
+      default: '/home'
+    }
+  },
+
   methods: {
     onLogout () {
       this.$store.dispatch('auth/logout')
-      if (this.$route.path !== '/home') {
-        this.$router.push('/home')
+      if (this.$route.path !== this.next) {
+        this.$router.push(this.next)
       }
     }
   },

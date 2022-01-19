@@ -72,7 +72,7 @@ export default {
         })
         .catch((e) => {
           console.log(e.response.data)
-          this.errors.push(e.message)
+          this.errors[0] = e.message
         })
     }
   }

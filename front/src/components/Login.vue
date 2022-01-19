@@ -29,13 +29,18 @@ export default {
   title: 'Log in',
 
   data () {
+    let next = this.$route.query.next
+    if (next) {
+      next = decodeURI(next)
+    }
+
     return {
       form: {
         email: null,
         password: null
       },
       errors: [],
-      next: this.$route.query.next || '/account'
+      next: next || '/account'
     }
   },
 
@@ -47,7 +52,7 @@ export default {
           this.$router.push(this.next)
         })
         .catch((e) => {
-          this.errors.push(e.message)
+          this.errors[0] = e.message
         })
     }
   }

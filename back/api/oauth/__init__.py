@@ -1,11 +1,19 @@
-from authlib.integrations.django_oauth2 import AuthorizationServer
+from authlib.integrations.django_oauth2 import (
+    AuthorizationServer, BearerTokenValidator,
+)
 from authlib.oauth2.rfc6749 import grants
 from authlib.common.security import generate_token
+
+from rest_framework import authentication
+from rest_framework import exceptions
+
+from django.contrib.auth import get_user_model
 
 from api.models import OAuth2Client, OAuth2Token, OAuth2Code
 
 
 SERVER = AuthorizationServer(OAuth2Client, OAuth2Token)
+User = get_user_model()
 
 
 class AuthorizationCodeGrant(grants.AuthorizationCodeGrant):
@@ -50,6 +58,21 @@ class RefreshTokenGrant(grants.RefreshTokenGrant):
     def revoke_old_credential(self, credential):
         credential.revoked = True
         credential.save()
+
+
+class OAuth2Authentication(authentication.BaseAuthentication):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._validator = BearerTokenValidator(OAuth2Token)
+
+    def authenticate(self, request):
+        token_string = request.META.get('HTTP_AUTHORIZATION')
+        if not token_string or not token_string.startswith('Bearer '):
+            return None
+        token = self._validator.authenticate_token(token_string[7:])
+        if token is None:
+            return None
+        return (token.user, None)
 
 
 SERVER.register_grant(AuthorizationCodeGrant)

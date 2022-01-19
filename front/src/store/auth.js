@@ -53,12 +53,10 @@ export default {
       commit('updateUser', r.data)
     },
 
-    async logout ({ commit }) {
-      try {
-        await axios.post('/api/users/logout/')
-      } catch (e) {
-        console.error(e)
-      }
+    logout ({ commit }) {
+      axios
+        .post('/api/users/logout/')
+        .then(console.log)
       commit('removeUser')
     }
   }

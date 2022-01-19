@@ -19,7 +19,7 @@ function requiresAuth (to, from, next) {
         next({
           path: '/login',
           query: {
-            next: to.path
+            next: encodeURI(to.fullPath)
           }
         })
       }
