@@ -64,7 +64,7 @@ export default {
 
   computed: {
     formAction () {
-      return `/api/oauth2/authorize/?client_id=${this.params.client_id}&response_type=${this.params.response_type}&redirect_uri=${this.params.redirect_uri}`
+      return `/api/oauth2/authorize/?client_id=${this.params.client_id}&response_type=${this.params.response_type}&redirect_uri=${this.params.redirect_uri}&state=${this.params.state}`
     },
 
     csrfToken () {

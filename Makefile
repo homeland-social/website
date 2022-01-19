@@ -1,4 +1,10 @@
-DOCKER_COMPOSE=docker-compose
+DOCKER = docker
+DOCKER_COMPOSE = docker-compose -p website
+
+
+.PHONY: shared
+shared:
+	-${DOCKER} network create --subnet=192.168.100.0/24 --ip-range=192.168.100.0/25 --gateway=192.168.100.254 shared
 
 
 .PHONY: build
@@ -7,7 +13,7 @@ build:
 
 
 .PHONY: run
-run:
+run: shared
 	${DOCKER_COMPOSE} up
 
 

@@ -14,7 +14,7 @@
       "scope": ["read-only"],
       "response_type": "code",
       "grant_type": "authorization_code",
-      "token_endpoint_auth_method": ""
+      "token_endpoint_auth_method": "client_secret_basic"
     }
   }
 ]

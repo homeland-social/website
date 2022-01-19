@@ -301,5 +301,9 @@ class OAuthAuthorizationView(APIView):
 
 
 class OAuthTokenView(APIView):
+    permission_classes = [AllowAny]
+
     def post(self, request):
+        print(request.data)
+        print(request.headers)
         return SERVER.create_token_response(request)

@@ -1,12 +1,20 @@
 version: "3.4"
 
+networks:
+  shared:
+    external:
+      name: shared
+  private:
+
 services:
   front:
-    image: front
+    image: website/front
     build:
       dockerfile: docker/website/Dockerfile
       context: .
       target: node
+    networks:
+      - private
     volumes:
       - ./front:/app:ro
       - ./docker/website/entrypoint-vue.sh:/entrypoint.sh:ro
@@ -19,11 +27,15 @@ services:
       - API_PORT=8000
 
   back:
-    image: back
+    image: website/back
     build:
       dockerfile: docker/website/Dockerfile
       context: .
       target: python
+    networks:
+      private:
+      shared:
+        ipv4_address: 192.168.100.200
     depends_on:
       - db
       - redis
@@ -36,13 +48,16 @@ services:
       - DJANGO_DB_USER=user
       - DJANGO_DB_NAME=shanty
       - DJANGO_DB_PASSWORD=password
+      - AUTHLIB_INSECURE_TRANSPORT=true
 
   migrate:
-    image: migrate
+    image: website/migrate
     build:
       dockerfile: docker/website/Dockerfile
       context: .
       target: migrate
+    networks:
+      - private
     volumes:
       - ./back:/app:ro
       - ./docker/website/entrypoint-migrate.sh:/entrypoint.sh:ro
@@ -56,11 +71,13 @@ services:
       - DJANGO_DB_PASSWORD=password
 
   celery:
-    image: celery
+    image: website/celery
     build:
       dockerfile: docker/website/Dockerfile
       context: .
       target: celery
+    networks:
+      - private
     volumes:
       - ./back:/app:ro
       - ./docker/website/entrypoint-celery.sh:/entrypoint.sh:ro
@@ -77,11 +94,13 @@ services:
       - CELERY_BEAT_SCHEDULER=django_celery_beat.schedulers:DatabaseScheduler
 
   beat:
-    image: beat
+    image: website/beat
     build:
       dockerfile: docker/website/Dockerfile
       context: .
       target: beat
+    networks:
+      - private
     volumes:
       - ./back:/app:ro
       - ./docker/website/entrypoint-beat.sh:/entrypoint.sh:ro
@@ -98,13 +117,15 @@ services:
       - CELERY_BEAT_SCHEDULER=django_celery_beat.schedulers:DatabaseScheduler
 
   dns:
-    image: powerdns
+    image: website/powerdns
     build:
       dockerfile: ./docker/powerdns/Dockerfile
       context: ./
     depends_on:
       - db
       - migrate
+    networks:
+      - private
     volumes:
       - ./docker/powerdns/pdns.conf.tmpl:/etc/pdns.conf.tmpl:ro
     environment:
@@ -115,6 +136,8 @@ services:
 
   db:
     image: postgres:14-alpine
+    networks:
+      - private
     environment:
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=password
@@ -122,15 +145,21 @@ services:
 
   redis:
     image: redis:alpine
+    networks:
+      - private
 
   pebble:
     image: letsencrypt/pebble
     command: pebble -config /etc/pebble/pebble.conf.json
+    networks:
+      - private
     volumes:
       - ./docker/pebble/pebble.conf.json:/etc/pebble/pebble.conf.json:ro
 
   flower:
     image: mher/flower
+    networks:
+      - private
     environment:
       - FLOWER_PORT=8888
       - CELERY_BROKER_URL=redis://redis:6379/0
@@ -139,6 +168,10 @@ services:
 
   prometheus:
     image: prom/prometheus
+    networks:
+      - private
 
   grafana:
     image: grafana/grafana
+    networks:
+      - private

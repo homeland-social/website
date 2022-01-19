@@ -14,7 +14,7 @@ deps: .venv
 
 .PHONY: test
 test: deps
-	${DOCKER_COMPOSE} run --rm --entrypoint="python3 manage.py test" back
+	${DOCKER_COMPOSE} run --rm --entrypoint="python3 manage.py test" migrate
 
 .PHONY: lint
 lint: deps

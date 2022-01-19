@@ -44,6 +44,7 @@ DEBUG = os.environ.get('DJANGO_DEBUG', '').lower() == 'true'
 
 ALLOWED_HOSTS = [
     '.shanty.social',
+    '.shanty.local',
     'localhost',
 ]
 
