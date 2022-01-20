@@ -13,6 +13,6 @@ from django.core.asgi import get_asgi_application
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'back.settings')
 
-raise NotImplemented('Not compatible with uwsgi and django')
+raise NotImplementedError('Not compatible with uwsgi and django')
 
 application = get_asgi_application()

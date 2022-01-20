@@ -43,7 +43,8 @@ SECRET_KEY = get_from_env_or_file(
 DEBUG = os.environ.get('DJANGO_DEBUG', '').lower() == 'true'
 
 ALLOWED_HOSTS = [
-    s.strip() for s in os.getenv('DJANGO_ALLOWED_HOSTS', '.shanty.social').split(',')
+    s.strip() for s in os.getenv(
+        'DJANGO_ALLOWED_HOSTS', '.shanty.social').split(',')
 ]
 
 
@@ -216,5 +217,5 @@ FIXTURE_DIRS = [
 DRF_RECAPTCHA_SECRET_KEY = os.getenv('DJANGO_RECAPTCHA_SECRET_KEY', '')
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-XFF_TRUSTED_PROXY_DEPTH=1
+XFF_TRUSTED_PROXY_DEPTH = 1
 XFF_NO_SPOOFING = True
