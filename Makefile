@@ -9,6 +9,7 @@ shared:
 
 .PHONY: build
 build:
+	touch .env
 	${DOCKER_COMPOSE} build
 
 
@@ -18,7 +19,7 @@ run: shared
 
 
 .PHONY: test
-test:
+test: build
 	${MAKE} -C front test
 	${MAKE} -C back test
 
