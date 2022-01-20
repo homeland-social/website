@@ -4,13 +4,16 @@
   >
     <label for="email">Email</label>
     <input
+      type="email"
       v-model="form.email"
+      required
     />
     <br/>
     <label for="password">Password</label>
     <input
       type="password"
       v-model="form.password"
+      required
     />
     <br/>
     <button>Login</button>

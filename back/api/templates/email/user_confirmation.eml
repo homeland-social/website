@@ -7,9 +7,9 @@ Confirm your email address
 {% block body %}
 Click below to confirm your email address. If you did not request this email, please ignore it.
 
-{{ url }}
+{{ url|safe }}
 {% endblock %}
 
 {% block html %}
-<p><a href="{{ url }}">Click here</a> to confirm your email address. If you did not request this email, please ignore it.</p>
+<p><a href="{{ url|safe }}">Click here</a> to confirm your email address. If you did not request this email, please ignore it.</p>
 {% endblock %}

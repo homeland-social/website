@@ -1,10 +1,10 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 import store from '@/store'
-import Login from '@/components/Login'
-import Registration from '@/components/Registration'
-import Account from '@/components/Account'
-import Authorize from '@/components/Authorize'
+import Login from '@/pages/Login'
+import Registration from '@/pages/Registration'
+import Account from '@/pages/Account'
+import Authorize from '@/pages/Authorize'
 
 Vue.use(Router)
 
