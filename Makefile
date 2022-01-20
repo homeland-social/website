@@ -19,7 +19,7 @@ run: shared
 
 
 .PHONY: test
-test: build
+test:
 	${MAKE} -C front test
 	${MAKE} -C back test
 
@@ -70,4 +70,4 @@ fixtures:
 
 
 .PHONY: ci
-ci: test lint
+ci: build shared test lint
