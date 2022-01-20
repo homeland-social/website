@@ -2,20 +2,16 @@
 
 DJANGO_DB_HOST=${DJANGO_DB_HOST:-db}
 DJANGO_DB_PORT=${DJANGO_DB_PORT:-5432}
+DJANGO_HOST=${DJANGO_HOST:-0.0.0.0}
+DJANGO_PORT=${DJANGO_PORT:-8000}
 
 if [ ! -z "${DJANGO_DEBUG}" ]; then
-    RELOAD=" --reload"
+    ARGS="${ARGS} --py-autoreload=1"
 fi
-
-if [ -z "${DJANGO_HOST}" ]; then
-    DJANGO_HOST="0.0.0.0"
-fi
-
-if [ -z "${DJANGO_PORT}" ]; then
-    DJANGO_PORT=8000
-fi
-
-ARGS="--host=${DJANGO_HOST} --port=${DJANGO_PORT}${RELOAD}"
 
 /wait-for ${DJANGO_DB_HOST}:${DJANGO_DB_PORT}
-uvicorn back.asgi:application ${ARGS}
+
+# NOTE: --enable-proxy-protocol does not seem to work.
+uwsgi --enable-threads --http-socket=${DJANGO_HOST}:${DJANGO_PORT} \
+      --uid=65534 --gid=65534 --manage-script-name --gevent 1000 --http-websockets \
+      --mount /=back.wsgi:application ${ARGS}

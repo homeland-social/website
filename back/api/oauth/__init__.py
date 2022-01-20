@@ -65,14 +65,17 @@ class OAuth2Authentication(authentication.BaseAuthentication):
         super().__init__(*args, **kwargs)
         self._validator = BearerTokenValidator(OAuth2Token)
 
-    def authenticate(self, request):
-        token_string = request.META.get('HTTP_AUTHORIZATION')
+    def _authenticate(self, environ):
+        token_string = environ.get('HTTP_AUTHORIZATION', None)
         if not token_string or not token_string.startswith('Bearer '):
             return None
         token = self._validator.authenticate_token(token_string[7:])
         if token is None:
             return None
         return (token.user, None)
+
+    def authenticate(self, request):
+        return self._authenticate(request.META)
 
 
 SERVER.register_grant(AuthorizationCodeGrant)

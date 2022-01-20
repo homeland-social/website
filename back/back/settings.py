@@ -43,9 +43,7 @@ SECRET_KEY = get_from_env_or_file(
 DEBUG = os.environ.get('DJANGO_DEBUG', '').lower() == 'true'
 
 ALLOWED_HOSTS = [
-    '.shanty.social',
-    '.shanty.local',
-    'localhost',
+    s.strip() for s in os.getenv('DJANGO_ALLOWED_HOSTS', '.shanty.social').split(',')
 ]
 
 
@@ -70,6 +68,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'xff.middleware.XForwardedForMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -204,7 +203,6 @@ MAILJET_API_SECRET = get_from_env_or_file('DJANGO_MAILJET_API_SECRET', None)
 DEFAULT_FROM_EMAIL = 'admin@shanty.social'
 
 EMAIL_CONFIRM_DAYS = 7
-EMAIL_CONFIRM_URL = '/#/confirm'
 
 ACME_DIRECTORY_URL = 'http://pebble/'
 ACME_KEY_BITS = 2048
@@ -216,3 +214,7 @@ FIXTURE_DIRS = [
 ]
 
 DRF_RECAPTCHA_SECRET_KEY = os.getenv('DJANGO_RECAPTCHA_SECRET_KEY', '')
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+XFF_TRUSTED_PROXY_DEPTH=1
+XFF_NO_SPOOFING = True

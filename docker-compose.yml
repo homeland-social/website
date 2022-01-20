@@ -18,8 +18,6 @@ services:
     volumes:
       - ./front:/app:ro
       - ./docker/website/entrypoint-vue.sh:/entrypoint.sh:ro
-    ports:
-      - 8000:8000
     environment:
       - VUE_HOST=0.0.0.0
       - VUE_PORT=8000
@@ -51,6 +49,7 @@ services:
       - DJANGO_DB_USER=user
       - DJANGO_DB_NAME=shanty
       - DJANGO_DB_PASSWORD=password
+      - DJANGO_ALLOWED_HOSTS=.shanty.social,.shanty.local,localhost
       - AUTHLIB_INSECURE_TRANSPORT=true
 
   migrate:
@@ -136,6 +135,15 @@ services:
       - PGSQL_DATABASE=shanty
       - PGSQL_USERNAME=user
       - PGSQL_PASSWORD=password
+
+  haproxy:
+    image: haproxytech/haproxy-alpine:2.6
+    volumes:
+      - ./docker/haproxy/haproxy.cfg:/etc/haproxy/haproxy.cfg:ro
+    networks:
+      - private
+    ports:
+      - 8000:8000
 
   db:
     image: postgres:14-alpine
