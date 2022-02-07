@@ -35,16 +35,16 @@ def connect(sid, environ):
         AUTH = OAuth2Authentication()
 
     try:
-        user = AUTH._authenticate(environ)
+        token = AUTH._authenticate(environ)
 
     except Exception as e:
         LOGGER.exception('Websocket %s authentication failed', sid)
-        user = None
+        token = None
 
-    if user is None:
+    if token is None:
         ConnectionRefusedError('Authentication failed')
 
-    USERS[sid] = user
+    USERS[sid] = token
 
 
 @SIO.event

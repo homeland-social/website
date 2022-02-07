@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework_recaptcha.fields import ReCaptchaField
 
-from api.models import Service, ServiceVersion
+from api.models import SSHKey
 
 
 User = get_user_model()
@@ -36,20 +36,6 @@ class CreateUserSerializer(serializers.Serializer):
     recaptcha = ReCaptchaField()
 
 
-class ServiceVersionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ServiceVersion
-        fields = ('version', 'image_name', 'image_tag', 'created')
-
-
-class ServiceSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Service
-        fields = ('uuid', 'name', 'group', 'description', 'logo', 'versions')
-
-    versions = ServiceVersionSerializer(many=True)
-
-
 class OAuth2ClientSerializer(serializers.Serializer):
     user = PublicUserSerializer()
     client_name = serializers.CharField()
@@ -60,3 +46,9 @@ class OAuth2ClientSerializer(serializers.Serializer):
 
 class OAuth2AuthzCodeSerializer(serializers.Serializer):
     client = OAuth2ClientSerializer()
+
+
+class SSHKeySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SSHKey
+        fields = ('name', 'key', 'created', 'modified')

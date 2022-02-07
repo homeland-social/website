@@ -1,16 +1,20 @@
+import logging
+
 from authlib.integrations.django_oauth2 import (
     AuthorizationServer, BearerTokenValidator,
 )
 from authlib.oauth2.rfc6749 import grants
 from authlib.common.security import generate_token
 
-from rest_framework import authentication
-from rest_framework import exceptions
+from rest_framework import authentication, exceptions, permissions
 
 from django.contrib.auth import get_user_model
 
 from api.models import OAuth2Client, OAuth2Token, OAuth2Code
 
+
+LOGGER = logging.getLogger(__name__)
+LOGGER.addHandler(logging.NullHandler())
 
 SERVER = AuthorizationServer(OAuth2Client, OAuth2Token)
 User = get_user_model()
@@ -44,6 +48,8 @@ class AuthorizationCodeGrant(grants.AuthorizationCodeGrant):
 
 
 class RefreshTokenGrant(grants.RefreshTokenGrant):
+    INCLUDE_NEW_REFRESH_TOKEN = True
+
     def authenticate_refresh_token(self, refresh_token):
         try:
             item = OAuth2Token.objects.get(refresh_token=refresh_token)
@@ -72,10 +78,43 @@ class OAuth2Authentication(authentication.BaseAuthentication):
         token = self._validator.authenticate_token(token_string[7:])
         if token is None:
             return None
-        return (token.user, None)
+        return token
 
     def authenticate(self, request):
-        return self._authenticate(request.META)
+        token = self._authenticate(request.META)
+        if token is None:
+            return None
+        request.auth = token
+        return (token.user, None)
+
+
+class OAuth2Scope(permissions.BasePermission):
+    def has_permission(self, request, view):
+        token = getattr(request, 'auth', None)
+        if token is None:
+            # Did not authenticate with oauth.
+            return True
+
+        scopes = token.scope
+        required_scopes = self.get_scopes(request, view)
+
+        if isinstance(required_scopes, dict):
+            required_scopes = required_scopes.get(request.method, [])
+
+        assert isinstance(required_scopes, list), \
+            'required_scopes must be dict or list'
+
+        return set(scopes).issuperset(set(required_scopes))
+
+    def get_scopes(self, request, view):
+        try:
+            return getattr(view, 'required_scopes')
+
+        except AttributeError:
+            LOGGER.warning(
+                'Could not determine acceptable scopes for view %s'
+                % view.__class__.__name__)
+            return []
 
 
 SERVER.register_grant(AuthorizationCodeGrant)

@@ -10,10 +10,10 @@
       "website_uri": "https://foobar.org/foo-bar-baz/",
       "description": "Lorem ipsum dolor sit amet. Ut galisum ipsa ut eius sequi sit vitae sint vel commodi quia a voluptatem ducimus et minima minus. Vel nulla eaque et quia quidem a similique dolores sit mollitia odio est modi maiores eum ratione sunt. Quo ratione minima ab modi voluptatem et vitae tempora quo ipsum molestiae est adipisci nesciunt eum odit laborum. Quo iusto perferendis ut quos aliquam qui molestiae aperiam.",
       "redirect_uris": "[\"http://localhost:5000/oauth/\"]",
-      "default_redirect_uri": "http://localhost:5000/",
+      "default_redirect_uri": "http://localhost:8080/api/oauth/shanty/authorize/",
       "scope": ["read-only"],
-      "response_type": "code",
-      "grant_type": "authorization_code",
+      "response_types": ["code"],
+      "grant_types": ["authorization_code", "refresh_token"],
       "token_endpoint_auth_method": "client_secret_basic"
     }
   }

@@ -43,7 +43,7 @@ resetdb:
 
 .PHONY: resetmigrations
 resetmigrations:
-	rm api/migrations/00*.py
+	rm -f api/migrations/00*.py
 	${MAKE} migrations
 
 

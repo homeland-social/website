@@ -1,6 +1,7 @@
 import time
 import hmac
 import binascii
+import logging
 from datetime import timedelta
 from uuid import uuid4
 
@@ -22,6 +23,9 @@ from django.contrib.postgres.fields import ArrayField
 from mail_templated import send_mail
 
 
+LOGGER = logging.getLogger(__name__)
+LOGGER.addHandler(logging.NullHandler())
+
 GRANT_TYPES = [
     ('authorization_code', 'authorization_code'),
 ]
@@ -29,6 +33,10 @@ TOKEN_AUTH_METHODS = [
     ('client_secret_post', 'client_secret_post'),
     ('client_secret_basic', 'client_secret_basic'),
 ]
+
+
+def grant_types_default():
+    return ['authorization_code', 'refresh_token']
 
 
 class VersionField(models.CharField):
@@ -120,53 +128,11 @@ class User(AbstractUser):
         return True
 
 
-class Service(models.Model):
-    uuid = models.CharField(max_length=36, default=uuid4, unique=True)
-    name = models.CharField(unique=True, max_length=32)
-    description = models.TextField()
-    group = models.CharField(max_length=32)
-    logo = models.URLField(null=True)
-    created = models.DateTimeField(null=False, auto_now_add=True)
-
-
-class ServiceVersion(models.Model):
-    service = models.ForeignKey(
-        Service, related_name='versions', on_delete=models.CASCADE)
-    version = VersionField(max_length=16)
-    image_name = models.CharField(max_length=64)
-    image_tag = models.CharField(max_length=16)
-    created = models.DateTimeField(null=False, auto_now_add=True)
-
-
-class ServiceRequire(models.Model):
-    class Meta:
-        unique_together = ('requiring', 'required')
-
-    requiring = models.ForeignKey(
-        ServiceVersion, related_name='requires', on_delete=models.CASCADE)
-    required = models.ForeignKey(
-        ServiceVersion, related_name='required_by', on_delete=models.CASCADE)
-
-
-class ServiceConflict(models.Model):
-    class Meta:
-        unique_together = ('conflicting', 'conflicted')
-
-    conflicting = models.ForeignKey(
-        ServiceVersion, related_name='conflicts', on_delete=models.CASCADE)
-    conflicted = models.ForeignKey(
-        ServiceVersion, related_name='conflicts_with',
-        on_delete=models.CASCADE)
-
-
 class SSHKey(models.Model):
     user = models.ForeignKey(User, db_index=True,
                              on_delete=models.CASCADE)
     name = models.CharField(max_length=100, blank=True)
     key = models.TextField(max_length=2000)
-    keytype = models.CharField(
-        max_length=32, blank=True, help_text="Type of key, e.g. 'ssh-rsa'")
-    fingerprint = models.CharField(max_length=128, blank=True, db_index=True)
     created = models.DateTimeField(default=timezone.now)
     modified = models.DateTimeField(auto_now=True)
 
@@ -182,11 +148,13 @@ class OAuth2Client(models.Model, ClientMixin):
     redirect_uris = ArrayField(models.CharField(max_length=256))
     default_redirect_uri = models.CharField(max_length=256, null=True)
     scope = ArrayField(models.CharField(max_length=24), null=True)
-    response_type = models.TextField(null=True)
-    grant_type = models.TextField(
-        choices=GRANT_TYPES, null=False, default='authorization_code')
+    response_types = ArrayField(models.CharField(max_length=32), null=True)
+    grant_types = ArrayField(
+        models.CharField(max_length=32), null=False,
+        default=grant_types_default)
     token_endpoint_auth_method = models.CharField(
-        choices=TOKEN_AUTH_METHODS, max_length=120, null=False, default='client_secret_post')
+        choices=TOKEN_AUTH_METHODS, max_length=120, null=False,
+        default='client_secret_post')
 
     def get_client_id(self):
         return self.client_id
@@ -214,12 +182,12 @@ class OAuth2Client(models.Model, ClientMixin):
         return self.token_endpoint_auth_method == method
 
     def check_response_type(self, response_type):
-        allowed = self.response_type.split()
-        return response_type in allowed
+        return response_type in self.response_types
 
     def check_grant_type(self, grant_type):
-        allowed = self.grant_type.split()
-        return grant_type in allowed
+        return grant_type in self.grant_types
+        print('Checking grant_type: %s, %s' % (grant_type, allowed))
+        return allowed
 
 
 class OAuth2Token(models.Model, TokenMixin):

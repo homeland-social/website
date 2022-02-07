@@ -3,15 +3,13 @@ from django.urls import path
 from rest_framework import routers
 
 from api.views import (
-    ServiceViewSet, ServiceVersionViewSet, UserLoginView, UserLogoutView,
-    UserCreateView, UserWhoamiView, UserConfirmView, OAuthAuthorizationView,
-    OAuthTokenView,
+    UserLoginView, UserLogoutView, UserCreateView, UserWhoamiView,
+    UserConfirmView, OAuthAuthorizationView, OAuthTokenView, SSHKeyViewSet,
 )
 
 
 router = routers.SimpleRouter()
-router.register(r'services', ServiceViewSet, basename='service')
-router.register(r'services/(?P<uuid>[0-9a-f\-]{36})/versions', ServiceVersionViewSet, basename='serviceversion')
+router.register(r'sshkeys', SSHKeyViewSet, basename='sshkey')
 
 urlpatterns = [
     path(
