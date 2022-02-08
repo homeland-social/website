@@ -51,4 +51,4 @@ class OAuth2AuthzCodeSerializer(serializers.Serializer):
 class SSHKeySerializer(serializers.ModelSerializer):
     class Meta:
         model = SSHKey
-        fields = ('name', 'key', 'created', 'modified')
+        fields = ('name', 'key', 'type', 'created', 'modified')

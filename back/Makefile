@@ -14,7 +14,7 @@ deps: .venv
 
 .PHONY: test
 test: deps
-	${DOCKER_COMPOSE} run --rm --entrypoint="python3 manage.py test" migrate
+	${DOCKER_COMPOSE} run --rm --entrypoint="python3 manage.py test" website-migrate
 
 .PHONY: lint
 lint: deps
@@ -28,17 +28,17 @@ migrations: deps
 
 .PHONY: migrate
 migrate:
-	${DOCKER_COMPOSE} run migrate
+	${DOCKER_COMPOSE} run website-migrate
 
 
 .PHONY: fixtures
 fixtures:
-	${DOCKER_COMPOSE} run --entrypoint="python3 manage.py loaddata --app api user oauth2client" migrate
+	${DOCKER_COMPOSE} run --entrypoint="python3 manage.py loaddata --app api user oauth2client" website-migrate
 
 
 .PHONY: resetdb
 resetdb:
-	${DOCKER_COMPOSE} run --entrypoint="python3 manage.py reset_db --noinput" migrate
+	${DOCKER_COMPOSE} run --entrypoint="python3 manage.py reset_db --noinput" website-migrate
 
 
 .PHONY: resetmigrations
@@ -49,4 +49,4 @@ resetmigrations:
 
 .PHONY: shell
 shell:
-	${DOCKER_COMPOSE} run --entrypoint="python3 manage.py shell" migrate
+	${DOCKER_COMPOSE} run --entrypoint="python3 manage.py shell" website-migrate

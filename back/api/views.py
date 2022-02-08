@@ -1,5 +1,6 @@
 import re
 import itertools
+import hmac
 from pprint import pprint
 from urllib.parse import urlparse, urlunparse
 
@@ -143,3 +144,22 @@ class SSHKeyViewSet(ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+    @action(detail=False, methods=['POST'], permission_classes=[AllowAny])
+    def verify(self, request):
+        try:
+            key_name = request.data['name']
+            key_data = request.data['key']
+            key_type = request.data['type']
+
+        except KeyError as e:
+            return Response('', status.HTTP_400_BAD_REQUEST)
+
+        key = get_object_or_404(SSHKey, name=key_name)
+        valid = hmac.compare_digest(
+            key.key, key_data) and key.type == key_type
+
+        if not valid:
+            return Response('', status.HTTP_401_UNAUTHORIZED)
+        else:
+            return Response('OK', status.HTTP_200_OK)
