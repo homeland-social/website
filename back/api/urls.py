@@ -5,6 +5,7 @@ from rest_framework import routers
 from api.views import (
     UserLoginView, UserLogoutView, UserCreateView, UserWhoamiView,
     UserConfirmView, OAuthAuthorizationView, OAuthTokenView, SSHKeyViewSet,
+    PortScanView,
 )
 
 
@@ -28,4 +29,5 @@ urlpatterns = [
     path(r'users/create/', UserCreateView.as_view(), name='api_users_create'),
     path(r'users/whoami/', UserWhoamiView.as_view(), name='api_users_whoami'),
     path(r'users/confirm/', UserConfirmView.as_view(), name='api_users_confirm'),
+    path(r'utils/port_scan/', PortScanView.as_view(), name='api_utils_port_scan'),
 ] + router.urls

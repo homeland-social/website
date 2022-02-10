@@ -1,10 +1,9 @@
 import re
 import itertools
 import hmac
+import socket
 from pprint import pprint
 from urllib.parse import urlparse, urlunparse
-
-import pycosat
 
 from django.conf import settings
 from django.http import HttpResponseRedirect
@@ -26,17 +25,40 @@ from rest_framework.permissions import (
     IsAuthenticatedOrReadOnly, AllowAny, IsAuthenticated,
 )
 
-from api.models import (
-    SSHKey,
-)
+from api.models import SSHKey
 from api.serializers import (
-    UserSerializer, OAuth2AuthzCodeSerializer, CreateUserSerializer,
-    SSHKeySerializer,
+    UserSerializer, OAuth2AuthzCodeSerializer, SSHKeySerializer,
 )
 from api.oauth import SERVER, OAuth2Scope
 
 
 User = get_user_model()
+
+
+class PortScanView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        host = request.META['REMOTE_ADDR']
+        ports = map(int, request.data['port'])
+        port_status = {}
+
+        for port in ports:
+            port_status[port] = 'closed'
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            try:
+                s.settimeout(3)
+                r = s.connect_ex((host, port))
+                port_status[port] = 'open' if r == 0 else 'closed'
+
+            except socket.error as e:
+                LOGGER.info(
+                    'Could not connect to port %i: %s', port, e.args[0])
+
+            finally:
+                s.close()
+
+        return Response(json.dumps(port_status), status=status.HTTP_200_OK)
 
 
 class UserLoginView(APIView):
@@ -64,7 +86,7 @@ class UserLogoutView(APIView):
 
 class UserCreateView(CreateAPIView):
     queryset = User.objects.all()
-    serializer_class = CreateUserSerializer
+    serializer_class = UserSerializer
     permission_classes = [AllowAny]
 
     def create(self, request):
@@ -74,16 +96,17 @@ class UserCreateView(CreateAPIView):
             username=request.data['username']
         )
         user.send_confirmation_email(request)
-        serializer = UserSerializer(user)
+        serializer = self.serializer_class(user)
         return Response(serializer.data)
 
 
 class UserWhoamiView(RetrieveAPIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = UserSerializer
 
     def get(self, request):
         user = get_object_or_404(User, pk=request.user.id)
-        serializer = UserSerializer(user)
+        serializer = self.serializer_class(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -138,6 +161,7 @@ class SSHKeyViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = SSHKeySerializer
     queryset = SSHKey.objects.all()
+    lookup_field = 'name'
 
     def get_queryset(self):
         return self.queryset.filter(user=self.request.user)
@@ -145,17 +169,23 @@ class SSHKeyViewSet(ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
-    @action(detail=False, methods=['POST'], permission_classes=[AllowAny])
-    def verify(self, request):
+    def update(self, request, name=None):
+        "Overridden to update or create."
+        key, created = SSHKey.objects.update_or_create(
+            name=name, user=request.user, defaults=request.data)
+        serializer = self.serializer_class(key)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['POST'], permission_classes=[AllowAny])
+    def verify(self, request, name=None):
         try:
-            key_name = request.data['name']
             key_data = request.data['key']
             key_type = request.data['type']
 
         except KeyError as e:
             return Response('', status.HTTP_400_BAD_REQUEST)
 
-        key = get_object_or_404(SSHKey, name=key_name)
+        key = get_object_or_404(SSHKey, name=name)
         valid = hmac.compare_digest(
             key.key, key_data) and key.type == key_type
 

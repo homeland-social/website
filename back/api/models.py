@@ -129,14 +129,9 @@ class User(AbstractUser):
 
 
 class SSHKey(models.Model):
-    class Meta:
-        unique_together = [
-            ('user', 'name')
-        ]
-
     user = models.ForeignKey(User, db_index=True,
                              on_delete=models.CASCADE)
-    name = models.CharField(max_length=100, blank=True)
+    name = models.UUIDField(unique=True, default=uuid4)
     key = models.TextField(max_length=2000)
     type = models.CharField(max_length=20)
     created = models.DateTimeField(default=timezone.now)

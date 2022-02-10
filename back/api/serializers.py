@@ -12,8 +12,22 @@ User = get_user_model()
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('username', 'email', 'password')
-        extra_kwargs = {'password': {'write_only': True}}
+        fields = ('username', 'email', 'password', 'recaptcha')
+        extra_kwargs = {
+            'password': {'write_only': True},
+            'recaptcha': {'write_only': True},
+        }
+
+    recaptcha = ReCaptchaField()
+
+    def __init__(self, *args, **kwargs):
+        fields = kwargs.pop('fields', None)
+        super().__init__(*args, **kwargs)
+        if fields:
+            allowed = set(fields)
+            existing = set(self.fields)
+            for field_name in existing - allowed:
+                self.fields.pop(field_name)
 
     def create(self, validated_data):
         username = validated_data['email']
@@ -24,20 +38,8 @@ class UserSerializer(serializers.ModelSerializer):
         return user
 
 
-class PublicUserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ('username', )
-
-
-class CreateUserSerializer(serializers.Serializer):
-    email = serializers.CharField()
-    password = serializers.CharField()
-    recaptcha = ReCaptchaField()
-
-
 class OAuth2ClientSerializer(serializers.Serializer):
-    user = PublicUserSerializer()
+    user = UserSerializer(fields=('username',))
     client_name = serializers.CharField()
     website_uri = serializers.URLField()
     description = serializers.CharField()
