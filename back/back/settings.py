@@ -59,11 +59,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_extensions',
     'django_celery_beat',
-    'rest_framework_recaptcha',
     'djcelery_email',
     'mail_templated',
     'powerdns',
     'rest_framework',
+    'drf_recaptcha',
     'api',
 ]
 
@@ -214,6 +214,7 @@ FIXTURE_DIRS = [
     Path(BASE_DIR).joinpath('api', 'fixtures'),
 ]
 
+DRF_RECAPTCHA_TESTING = TEST
 DRF_RECAPTCHA_SECRET_KEY = os.getenv('DJANGO_RECAPTCHA_SECRET_KEY', '')
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -223,3 +224,13 @@ XFF_NO_SPOOFING = True
 AUTHLIB_OAUTH2_PROVIDER = {
     'refresh_token_generator': True,
 }
+
+SHARED_DOMAINS = [
+    'shanty.social',
+    'shanty.local',
+]
+
+NAME_SERVERS = [
+    '1.1.1.1',
+    '8.8.8.8',
+]

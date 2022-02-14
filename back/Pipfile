@@ -23,11 +23,12 @@ whitenoise = "*"
 django-redis = "*"
 paramiko = "*"
 authlib = "*"
-djangorestframework-recaptcha = "*"
 uwsgi = "*"
 gevent = "*"
 python-socketio = "*"
 django-xff = "*"
+dnspython = "*"
+drf-recaptcha = "*"
 
 [dev-packages]
 flake8 = "*"

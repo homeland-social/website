@@ -5,8 +5,6 @@ import logging
 from datetime import timedelta
 from uuid import uuid4
 
-from pkg_resources import parse_version
-from pkg_resources.extern.packaging.version import Version
 from authlib.oauth2.rfc6749 import (
     ClientMixin, TokenMixin, AuthorizationCodeMixin,
 )
@@ -37,25 +35,6 @@ TOKEN_AUTH_METHODS = [
 
 def grant_types_default():
     return ['authorization_code', 'refresh_token']
-
-
-class VersionField(models.CharField):
-    def from_db_value(self, value, expression, connection):
-        if value is None:
-            return value
-        return parse_version(value)
-
-    def to_python(self, value):
-        if isinstance(value, Version):
-            return value
-
-        if value is None:
-            return value
-
-        return parse_version(value)
-
-    def get_prep_value(self, value):
-        return str(value)
 
 
 class UserManager(BaseUserManager):
@@ -106,7 +85,7 @@ class User(AbstractUser):
 
     def send_confirmation_email(self, request):
         params = self.generate_confirmation()
-        url = request.build_absolute_uri(reverse('api_users_confirm'))
+        url = request.build_absolute_uri(reverse('user-confirm', kwargs={'pk': self.id}))
         url += '?' + urlencode(params)
         send_mail(
             'email/user_confirmation.eml',
@@ -123,8 +102,6 @@ class User(AbstractUser):
             raise ValueError('Signature expired')
         if not hmac.compare_digest(sig1, sig2):
             raise ValueError('Invalid signature')
-        User.objects.filter(pk=self.pk).update(
-            is_active=True, is_confirmed=True)
         return True
 
 
@@ -134,6 +111,14 @@ class SSHKey(models.Model):
     name = models.UUIDField(unique=True, default=uuid4)
     key = models.TextField(max_length=2000)
     type = models.CharField(max_length=20)
+    created = models.DateTimeField(default=timezone.now)
+    modified = models.DateTimeField(auto_now=True)
+
+
+class Hostname(models.Model):
+    user = models.ForeignKey(User, db_index=True,
+                             on_delete=models.CASCADE)
+    name = models.CharField(max_length=128, unique=True)
     created = models.DateTimeField(default=timezone.now)
     modified = models.DateTimeField(auto_now=True)
 

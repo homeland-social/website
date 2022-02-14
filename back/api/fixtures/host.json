@@ -1,0 +1,11 @@
+[
+    {
+      "model": "api.hostname",
+      "pk": 1,
+      "fields": {
+        "user_id": 1,
+        "name": "google.com",
+        "modified": "2022-01-17T00:05:40.009Z"
+      }
+    }
+]

@@ -3,7 +3,7 @@ from urllib.parse import urlparse, parse_qs
 
 from django.urls import reverse
 
-from . import AuthenticatedTestCase
+from api.tests import AuthenticatedTestCase
 
 
 CLIENT_ID = b'19bbc55f-0f6f-4fca-95bc-f86286db43da'
@@ -11,7 +11,7 @@ CLIENT_SECRET = b'50ec237f-20b0-4a47-8a25-b329f6d53beb'
 AUTHZ_PARAMS = {
     'response_type': 'code',
     'client_id': '19bbc55f-0f6f-4fca-95bc-f86286db43da',
-    'redirect_uri': 'http://localhost:5000/',
+    'redirect_uri': 'http://localhost:5000/oauth/',
     'state': 'lmnopqrstuv',
 }
 

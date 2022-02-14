@@ -5,6 +5,8 @@ import socket
 from pprint import pprint
 from urllib.parse import urlparse, urlunparse
 
+import dns.resolver
+
 from django.conf import settings
 from django.http import HttpResponseRedirect
 from django.core.cache import cache
@@ -17,7 +19,8 @@ from django.views.decorators.csrf import csrf_exempt
 from cache_memoize import cache_memoize
 from rest_framework import status, permissions
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
+from rest_framework.mixins import DestroyModelMixin
 from rest_framework.generics import CreateAPIView, RetrieveAPIView
 from rest_framework.decorators import action
 from rest_framework.views import APIView
@@ -25,47 +28,35 @@ from rest_framework.permissions import (
     IsAuthenticatedOrReadOnly, AllowAny, IsAuthenticated,
 )
 
-from api.models import SSHKey
+from api.permissions import CreateOrConfirmOrLoginOrIsAuthenticated
+from api.models import SSHKey, Hostname, OAuth2Token
 from api.serializers import (
     UserSerializer, OAuth2AuthzCodeSerializer, SSHKeySerializer,
+    HostnameSerializer, OAuth2TokenSerializer, UserConfirmSerializer,
 )
 from api.oauth import SERVER, OAuth2Scope
 
 
+RESOLVER = dns.resolver.Resolver(configure=False)
+RESOLVER.nameservers = settings.NAME_SERVERS
+
 User = get_user_model()
 
 
-class PortScanView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request):
-        host = request.META['REMOTE_ADDR']
-        ports = map(int, request.data['port'])
-        port_status = {}
-
-        for port in ports:
-            port_status[port] = 'closed'
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            try:
-                s.settimeout(3)
-                r = s.connect_ex((host, port))
-                port_status[port] = 'open' if r == 0 else 'closed'
-
-            except socket.error as e:
-                LOGGER.info(
-                    'Could not connect to port %i: %s', port, e.args[0])
-
-            finally:
-                s.close()
-
-        return Response(json.dumps(port_status), status=status.HTTP_200_OK)
-
-
-class UserLoginView(APIView):
+class UserViewSet(ModelViewSet):
+    permission_classes = [CreateOrConfirmOrLoginOrIsAuthenticated]
     serializer_class = UserSerializer
-    permission_classes = [AllowAny]
+    queryset = User.objects.all()
 
-    def post(self, request):
+    def get_queryset(self):
+        return self.queryset.filter(pk=self.request.user.id)
+
+    def perform_create(self, serializer):
+        user = serializer.save()
+        user.send_confirmation_email(self.request)
+
+    @action(detail=False, methods=['POST'])
+    def login(self, request):
         email = request.data['email']
         password = request.data['password']
         user = authenticate(request, email=email, password=password)
@@ -75,63 +66,24 @@ class UserLoginView(APIView):
         serializer = self.serializer_class(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-
-class UserLogoutView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request):
+    @action(detail=False, methods=['POST'])
+    def logout(self, request):
         logout(request)
         return Response('', status=status.HTTP_204_NO_CONTENT)
 
-
-class UserCreateView(CreateAPIView):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-    permission_classes = [AllowAny]
-
-    def create(self, request):
-        user = User.objects.create_user(
-            request.data['email'],
-            request.data['password'],
-            username=request.data['username']
-        )
-        user.send_confirmation_email(request)
-        serializer = self.serializer_class(user)
-        return Response(serializer.data)
-
-
-class UserWhoamiView(RetrieveAPIView):
-    permission_classes = [IsAuthenticated]
-    serializer_class = UserSerializer
-
-    def get(self, request):
+    @action(detail=False, methods=['GET'])
+    def whoami(self, request):
         user = get_object_or_404(User, pk=request.user.id)
         serializer = self.serializer_class(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-
-class UserConfirmView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        try:
-            email = request.query_params['email']
-            ts = float(request.query_params['ts'])
-            signature = request.query_params['signature']
-
-        except ValueError as e:
-            return Response({ 'ts': 'Is invalid' }, status=status.HTTP_400_BAD_REQUEST)
-        except KeyError as e:
-            return Response({ e.args[0]: 'Is required' }, status=status.HTTP_400_BAD_REQUEST)
-
-        user = get_object_or_404(User, email=email)
-        try:
-            user.validate_confirmation(ts, signature)
-
-        except ValueError as e:
-            return Response({ 'signature': 'Is invalid' }, status=status.HTTP_400_BAD_REQUEST)
-
+    @action(detail=True, methods=['POST'])
+    def confirm(self, request, pk=None):
         next = request.query_params.get('next', '/#/login')
+        serializer = UserConfirmSerializer(pk, data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.save()
         return HttpResponseRedirect(next)
 
 
@@ -155,6 +107,15 @@ class OAuthTokenView(APIView):
 
     def post(self, request):
         return SERVER.create_token_response(request)
+
+
+class OAuth2TokenViewSet(DestroyModelMixin, ReadOnlyModelViewSet):
+    permission_classes = [IsAuthenticated]
+    serializer_class = OAuth2TokenSerializer
+    queryset = OAuth2Token.objects.all()
+
+    def get_queryset(self):
+        return self.queryset.filter(user=self.request.user)
 
 
 class SSHKeyViewSet(ModelViewSet):
@@ -191,5 +152,58 @@ class SSHKeyViewSet(ModelViewSet):
 
         if not valid:
             return Response('', status.HTTP_401_UNAUTHORIZED)
+
         else:
             return Response('OK', status.HTTP_200_OK)
+
+
+class HostnameViewSet(ModelViewSet):
+    permission_classes = [IsAuthenticated]
+    serializer_class = HostnameSerializer
+    queryset = Hostname.objects.all()
+    lookup_field = 'name'
+    lookup_value_regex = r'[^/]+'
+
+    def get_queryset(self):
+        return self.queryset.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    @action(detail=True, methods=['POST'])
+    def dig(self, request, name=None):
+        hostname = get_object_or_404(Hostname, name=name)
+        result = {}
+        try:
+            a = RESOLVER.query(hostname.name, 'A')
+            result[hostname.name] = [ip.to_text() for ip in a]
+
+        except dns.resolver.NXDOMAIN:
+            result[hostname.name] = None
+
+        return Response(result, status.HTTP_200_OK)
+
+    @action(detail=False, methods=['POST'])
+    def port_scan(self, request):
+        host = request.META['REMOTE_ADDR']
+        ports = map(int, request.data.get('ports', [80, 443]))
+        response = {
+            'host': host,
+        }
+
+        for port in ports:
+            response[port] = 'closed'
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            try:
+                s.settimeout(3)
+                r = s.connect_ex((host, port))
+                response[port] = 'open' if r == 0 else 'closed'
+
+            except socket.error as e:
+                LOGGER.info(
+                    'Could not connect to port %i: %s', port, e.args[0])
+
+            finally:
+                s.close()
+
+        return Response(response, status=status.HTTP_200_OK)

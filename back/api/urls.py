@@ -3,14 +3,16 @@ from django.urls import path
 from rest_framework import routers
 
 from api.views import (
-    UserLoginView, UserLogoutView, UserCreateView, UserWhoamiView,
-    UserConfirmView, OAuthAuthorizationView, OAuthTokenView, SSHKeyViewSet,
-    PortScanView,
+    OAuthAuthorizationView, OAuthTokenView, SSHKeyViewSet, HostnameViewSet,
+    OAuth2TokenViewSet, UserViewSet,
 )
 
 
 router = routers.SimpleRouter()
 router.register(r'sshkeys', SSHKeyViewSet, basename='sshkey')
+router.register(r'hosts', HostnameViewSet, basename='host')
+router.register(r'tokens', OAuth2TokenViewSet, basename='token')
+router.register(r'users', UserViewSet, basename='user')
 
 urlpatterns = [
     path(
@@ -23,11 +25,4 @@ urlpatterns = [
         OAuthTokenView.as_view(),
         name='oauth_token_view'
     ),
-
-    path(r'users/login/', UserLoginView.as_view(), name='api_users_login'),
-    path(r'users/logout/', UserLogoutView.as_view(), name='api_users_logout'),
-    path(r'users/create/', UserCreateView.as_view(), name='api_users_create'),
-    path(r'users/whoami/', UserWhoamiView.as_view(), name='api_users_whoami'),
-    path(r'users/confirm/', UserConfirmView.as_view(), name='api_users_confirm'),
-    path(r'utils/port_scan/', PortScanView.as_view(), name='api_utils_port_scan'),
 ] + router.urls
