@@ -12,10 +12,13 @@ import os
 import socketio
 from api.ws import SIO
 
+from uwsgi_chunked import Chunked
+
 from django.core.wsgi import get_wsgi_application
 
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'back.settings')
 
-django_app = get_wsgi_application()
+
+django_app = Chunked(get_wsgi_application())
 application = socketio.WSGIApp(SIO, django_app)

@@ -29,6 +29,7 @@ python-socketio = "*"
 django-xff = "*"
 dnspython = "*"
 drf-recaptcha = "*"
+uwsgi-chunked = "==0.1.8"
 
 [dev-packages]
 flake8 = "*"
