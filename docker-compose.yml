@@ -21,8 +21,8 @@ services:
     volumes:
       - ./back:/app:ro
       - ./docker/website/entrypoint-api.sh:/entrypoint.sh:ro
-    # See .env.template for instructions.
     env_file:
+      # See .env.template for instructions.
       - .env
     environment:
       - DJANGO_DEBUG=true
@@ -31,6 +31,8 @@ services:
       - DJANGO_DB_NAME=shanty
       - DJANGO_DB_PASSWORD=password
       - DJANGO_ALLOWED_HOSTS=.shanty.social,.shanty.local,localhost
+      - DJANGO_NAME_SERVERS=1.1.1.1,8.8.8.8
+      - DJANGO_SHARED_DOMAINS=shanty.social,shanty.local
       - AUTHLIB_INSECURE_TRANSPORT=true
 
   website-front:
@@ -65,12 +67,17 @@ services:
       - ./docker/website/entrypoint-migrate.sh:/entrypoint.sh:ro
     depends_on:
       - website-db
+    env_file:
+      # See .env.template for instructions.
+      - .env
     environment:
       - DJANGO_DEBUG=true
       - DJANGO_DB_HOST=website-db
       - DJANGO_DB_USER=user
       - DJANGO_DB_NAME=shanty
       - DJANGO_DB_PASSWORD=password
+      - DJANGO_NAME_SERVERS=1.1.1.1,8.8.8.8
+      - DJANGO_SHARED_DOMAINS=shanty.social,shanty.local
 
   website-celery:
     image: website/celery
@@ -87,11 +94,16 @@ services:
       - website-db
       - website-redis
       - website-migrate
+    env_file:
+      # See .env.template for instructions.
+      - .env
     environment:
       - DJANGO_DB_HOST=website-db
       - DJANGO_DB_USER=user
       - DJANGO_DB_NAME=shanty
       - DJANGO_DB_PASSWORD=password
+      - DJANGO_NAME_SERVERS=1.1.1.1,8.8.8.8
+      - DJANGO_SHARED_DOMAINS=shanty.social,shanty.local
       - CELERY_BROKER_URL=redis://website-redis:6379/0
       - CELERY_BEAT_SCHEDULER=django_celery_beat.schedulers:DatabaseScheduler
 
@@ -110,11 +122,16 @@ services:
       - website-db
       - website-redis
       - website-migrate
+    env_file:
+      # See .env.template for instructions.
+      - .env
     environment:
       - DJANGO_DB_HOST=website-db
       - DJANGO_DB_USER=user
       - DJANGO_DB_NAME=shanty
       - DJANGO_DB_PASSWORD=password
+      - DJANGO_NAME_SERVERS=1.1.1.1,8.8.8.8
+      - DJANGO_SHARED_DOMAINS=shanty.social,shanty.local
       - CELERY_BROKER_URL=redis://website-redis:6379/0
       - CELERY_BEAT_SCHEDULER=django_celery_beat.schedulers:DatabaseScheduler
 

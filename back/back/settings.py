@@ -225,12 +225,6 @@ AUTHLIB_OAUTH2_PROVIDER = {
     'refresh_token_generator': True,
 }
 
-SHARED_DOMAINS = [
-    'shanty.social',
-    'shanty.local',
-]
+SHARED_DOMAINS = os.getenv('DJANGO_SHARED_DOMAINS', '').split(',')
 
-NAME_SERVERS = [
-    '1.1.1.1',
-    '8.8.8.8',
-]
+NAME_SERVERS = os.getenv('DJANGO_NAME_SERVERS', '').split(',')

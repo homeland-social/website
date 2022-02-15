@@ -28,7 +28,7 @@ from rest_framework.permissions import (
     IsAuthenticatedOrReadOnly, AllowAny, IsAuthenticated,
 )
 
-from api.permissions import CreateOrConfirmOrLoginOrIsAuthenticated
+from api.permissions import CreateOrIsAuthenticated
 from api.models import SSHKey, Hostname, OAuth2Token
 from api.serializers import (
     UserSerializer, OAuth2AuthzCodeSerializer, SSHKeySerializer,
@@ -44,7 +44,7 @@ User = get_user_model()
 
 
 class UserViewSet(ModelViewSet):
-    permission_classes = [CreateOrConfirmOrLoginOrIsAuthenticated]
+    permission_classes = [CreateOrIsAuthenticated]
     serializer_class = UserSerializer
     queryset = User.objects.all()
 
@@ -55,7 +55,7 @@ class UserViewSet(ModelViewSet):
         user = serializer.save()
         user.send_confirmation_email(self.request)
 
-    @action(detail=False, methods=['POST'])
+    @action(detail=False, methods=['POST'], permission_classes=[AllowAny])
     def login(self, request):
         email = request.data['email']
         password = request.data['password']
@@ -66,18 +66,18 @@ class UserViewSet(ModelViewSet):
         serializer = self.serializer_class(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['POST'])
+    @action(detail=False, methods=['POST'], permission_classes=[AllowAny])
     def logout(self, request):
         logout(request)
         return Response('', status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=False, methods=['GET'])
+    @action(detail=False, methods=['GET'], permission_classes=[AllowAny])
     def whoami(self, request):
         user = get_object_or_404(User, pk=request.user.id)
         serializer = self.serializer_class(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['POST'])
+    @action(detail=True, methods=['POST'], permission_classes=[AllowAny])
     def confirm(self, request, pk=None):
         next = request.query_params.get('next', '/#/login')
         serializer = UserConfirmSerializer(pk, data=request.data)
@@ -144,17 +144,22 @@ class SSHKeyViewSet(ModelViewSet):
             key_type = request.data['type']
 
         except KeyError as e:
-            return Response('', status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {e.args[0]: 'Is required'}, status.HTTP_400_BAD_REQUEST,
+                content_type='application/json')
 
         key = get_object_or_404(SSHKey, name=name)
         valid = hmac.compare_digest(
             key.key, key_data) and key.type == key_type
 
         if not valid:
-            return Response('', status.HTTP_401_UNAUTHORIZED)
+            return Response({'key': 'Invalid'}, status.HTTP_400_BAD_REQUEST,
+                            content_type='application/json')
 
         else:
-            return Response('OK', status.HTTP_200_OK)
+            serializer = self.serializer_class(key)
+            return Response(serializer.data, status.HTTP_200_OK,
+                            content_type='application/json')
 
 
 class HostnameViewSet(ModelViewSet):
@@ -169,6 +174,21 @@ class HostnameViewSet(ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+    @action(detail=False, methods=['POST'])
+    def check(self, request):
+        name = request.data.get('name')
+        if not name:
+            return Response({'name': 'is required'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        host = get_object_or_404(Hostname, name=name)        
+        serializer = self.serializer_class(host)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['GET'])
+    def shared(self, request):
+        return Response(settings.SHARED_DOMAINS, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['POST'])
     def dig(self, request, name=None):
