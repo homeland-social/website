@@ -12,7 +12,12 @@ export default {
 
   getters: {
     isAuthenticated (state) {
+      // TODO: may also need to inspect the cookie.
       return state.user !== null && state.user !== false
+    },
+
+    user (state) {
+      return state.user
     }
   },
 
@@ -36,7 +41,7 @@ export default {
               commit('updateUser', r.data)
               resolve(true)
             })
-            .catch((e) => {
+            .catch(() => {
               commit('updateUser', false)
               resolve(false)
             })

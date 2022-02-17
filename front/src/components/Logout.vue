@@ -1,21 +1,21 @@
 <template>
-  <a
-    href="#"
-    :class="{ 'nav-link': true, 'disabled': !isAuthenticated }"
+  <v-btn
+    text
     @click.prevent="onLogout"
-  >Logout</a>
+  >
+    <span class="mr-2">Logout</span>
+    <v-icon>mdi-logout-variant</v-icon>
+  </v-btn>
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
-
 export default {
   name: 'Logout',
 
   props: {
     next: {
       type: String,
-      default: '/home'
+      default: '/'
     }
   },
 
@@ -26,10 +26,6 @@ export default {
         this.$router.push(this.next)
       }
     }
-  },
-
-  computed: {
-    ...mapGetters({ isAuthenticated: 'auth/isAuthenticated' })
   }
 }
 </script>

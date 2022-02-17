@@ -1,10 +1,11 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 import store from '@/store'
-import Login from '@/pages/Login'
-import Registration from '@/pages/Registration'
-import Account from '@/pages/Account'
-import Authorize from '@/pages/Authorize'
+import Home from '@/views/Home'
+import Login from '@/views/Login'
+import Registration from '@/views/Registration'
+import Settings from '@/views/Settings'
+import Authorize from '@/views/Authorize'
 
 Vue.use(Router)
 
@@ -28,6 +29,11 @@ function requiresAuth (to, from, next) {
 const router = new Router({
   routes: [
     {
+      path: '/',
+      name: 'Home',
+      component: Home
+    },
+    {
       path: '/login',
       name: 'Login',
       component: Login
@@ -38,9 +44,9 @@ const router = new Router({
       component: Registration
     },
     {
-      path: '/account',
-      name: 'Account',
-      component: Account,
+      path: '/settings',
+      name: 'Settings',
+      component: Settings,
       beforeEnter: requiresAuth
     },
     {

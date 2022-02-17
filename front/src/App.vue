@@ -1,37 +1,45 @@
 <template>
-  <div id="app">
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <a class="navbar-brand" href="#">Shanty.social</a>
-      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav">
-          <li class="nav-item">
-            <router-link
-              to='/login'
-              class="nav-link"
-            >Login</router-link>
-          </li>
-          <li class="nav-item">
-            <Logout/>
-          </li>
-        </ul>
+  <v-app>
+    <v-app-bar
+      app
+      color="primary"
+      dark
+    >
+      <div class="d-flex align-center">
+        <v-btn
+          to="/"
+          light
+        >
+          Shanty social
+          <v-icon>mdi-earth</v-icon>
+        </v-btn>
       </div>
-    </nav>
-    <router-view/>
-  </div>
+
+      <v-spacer></v-spacer>
+      <account/>
+    </v-app-bar>
+
+    <v-main>
+      <router-view/>
+    </v-main>
+  </v-app>
 </template>
 
 <script>
-import Logout from '@/components/Logout'
+import { mapActions } from 'vuex'
+import Account from '@/components/Account'
 
 export default {
-  name: 'App',
-  title: 'Home',
-
   components: {
-    Logout
+    Account
+  },
+
+  methods: {
+    ...mapActions({ whoami: 'auth/whoami'})
+  },
+
+  created () {
+    this.whoami()
   }
 }
 </script>
