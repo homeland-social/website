@@ -24,7 +24,7 @@ class AuthorizationCodeGrant(grants.AuthorizationCodeGrant):
     def save_authorization_code(self, code, request):
         return OAuth2Code.objects.create(
             code=code,
-            client_id=request.client.client_id,
+            client=request.client,
             redirect_uri=request.redirect_uri,
             response_type=request.response_type,
             scope=request.client.scope,
@@ -33,7 +33,8 @@ class AuthorizationCodeGrant(grants.AuthorizationCodeGrant):
 
     def query_authorization_code(self, code, client):
         try:
-            item = OAuth2Code.objects.get(code=code, client_id=client.client_id)
+            item = OAuth2Code.objects.get(code=code, client__client_id=client.client_id)
+
         except OAuth2Code.DoesNotExist:
             return None
 

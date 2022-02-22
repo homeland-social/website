@@ -30,6 +30,7 @@ django-xff = "*"
 dnspython = "*"
 drf-recaptcha = "*"
 uwsgi-chunked = "==0.1.8"
+hashids = "*"
 
 [dev-packages]
 flake8 = "*"

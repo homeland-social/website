@@ -40,7 +40,7 @@ class UserConfirmTestCase(APITestCase):
 
     def test_confirm_post(self):
         r = self.client.post(
-            reverse('user-confirm', kwargs={'pk': self.user.id}), {
+            reverse('user-confirm', kwargs={'uid': self.user.uid}), {
             'ts': self.confirmation['ts'],
             'signature': self.confirmation['signature'].decode(),
         })

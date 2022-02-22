@@ -2,7 +2,6 @@ import re
 import itertools
 import hmac
 import socket
-from pprint import pprint
 from urllib.parse import urlparse, urlunparse
 
 import dns.resolver
@@ -47,6 +46,7 @@ class UserViewSet(ModelViewSet):
     permission_classes = [CreateOrIsAuthenticated]
     serializer_class = UserSerializer
     queryset = User.objects.all()
+    lookup_field = 'uid'
 
     def get_queryset(self):
         return self.queryset.filter(pk=self.request.user.id)
@@ -78,9 +78,9 @@ class UserViewSet(ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['POST'], permission_classes=[AllowAny])
-    def confirm(self, request, pk=None):
+    def confirm(self, request, uid=None):
         next = request.query_params.get('next', '/#/login')
-        serializer = UserConfirmSerializer(pk, data=request.data)
+        serializer = UserConfirmSerializer(uid, data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         serializer.save()
@@ -113,6 +113,7 @@ class OAuth2TokenViewSet(DestroyModelMixin, ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = OAuth2TokenSerializer
     queryset = OAuth2Token.objects.all()
+    lookup_field = 'uid'
 
     def get_queryset(self):
         return self.queryset.filter(user=self.request.user)
@@ -122,10 +123,10 @@ class SSHKeyViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = SSHKeySerializer
     queryset = SSHKey.objects.all()
-    lookup_field = 'name'
+    lookup_field = 'uid'
 
     def get_queryset(self):
-        return self.queryset.filter(user=self.request.user)
+        return self.queryset.filter(user=self.request.user).order_by('-created')
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -137,7 +138,7 @@ class SSHKeyViewSet(ModelViewSet):
         serializer = self.serializer_class(key)
         return Response(serializer.data)
 
-    @action(detail=True, methods=['POST'], permission_classes=[AllowAny])
+    @action(detail=False, methods=['POST'], url_path=r'(?P<name>[^/.]+)/verify', permission_classes=[AllowAny])
     def verify(self, request, name=None):
         try:
             key_data = request.data['key']
@@ -166,8 +167,7 @@ class HostnameViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = HostnameSerializer
     queryset = Hostname.objects.all()
-    lookup_field = 'name'
-    lookup_value_regex = r'[^/]+'
+    lookup_field = 'uid'
 
     def get_queryset(self):
         return self.queryset.filter(user=self.request.user)
@@ -190,7 +190,7 @@ class HostnameViewSet(ModelViewSet):
     def shared(self, request):
         return Response(settings.SHARED_DOMAINS, status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['POST'])
+    @action(detail=False, url_path=r'(?P<name>[^/]+)/dig', methods=['POST'])
     def dig(self, request, name=None):
         hostname = get_object_or_404(Hostname, name=name)
         result = {}

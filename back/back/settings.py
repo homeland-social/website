@@ -215,7 +215,7 @@ FIXTURE_DIRS = [
 ]
 
 DRF_RECAPTCHA_TESTING = TEST
-DRF_RECAPTCHA_SECRET_KEY = os.getenv('DJANGO_RECAPTCHA_SECRET_KEY', '')
+DRF_RECAPTCHA_SECRET_KEY = os.getenv('DJANGO_RECAPTCHA_SECRET_KEY', 'unknown')
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 XFF_TRUSTED_PROXY_DEPTH = 1
@@ -225,6 +225,8 @@ AUTHLIB_OAUTH2_PROVIDER = {
     'refresh_token_generator': True,
 }
 
-SHARED_DOMAINS = os.getenv('DJANGO_SHARED_DOMAINS', '').split(',')
+SHARED_DOMAINS = os.getenv(
+    'DJANGO_SHARED_DOMAINS', 'shanty.social').split(',')
 
-NAME_SERVERS = os.getenv('DJANGO_NAME_SERVERS', '').split(',')
+NAME_SERVERS = os.getenv(
+    'DJANGO_NAME_SERVERS', '1.1.1.1,8.8.8.8').split(',')

@@ -3,7 +3,7 @@
     <v-container fluid>
       <v-layout align-center justify-center>
         <v-flex xs12 sm8 md4>
-          <h1>This is the home page</h1>
+          <h1>This is the how it works page</h1>
         </v-flex>
       </v-layout>
     </v-container>

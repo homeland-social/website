@@ -12,15 +12,17 @@
     <v-menu
       v-else
       offset-y
+      rounded="0"
     >
       <template v-slot:activator="{ on, attrs }">
         <v-btn
           color="primary"
+          class="white--text ma-5"
           dark
           v-bind="attrs"
           v-on="on"
         >
-          {{ user.username }}
+          {{ whoami.username }}
           <v-icon
             right
             dark
@@ -32,6 +34,7 @@
       <v-list>
         <v-list-item
           to="/settings"
+          link
         >
           <v-list-item-icon><v-icon>mdi-cog-outline</v-icon></v-list-item-icon>
           <v-list-item-content>
@@ -53,6 +56,7 @@
 
 <script>
 import { mapGetters } from 'vuex'
+
 export default {
   name: 'Account',
 
@@ -73,7 +77,7 @@ export default {
   },
 
   computed: {
-    ...mapGetters({ isAuthenticated: 'auth/isAuthenticated', user: 'auth/user' })
+    ...mapGetters({ isAuthenticated: 'auth/isAuthenticated', whoami: 'auth/whoami' })
   }
 }
 </script>

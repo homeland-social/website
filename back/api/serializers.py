@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from drf_recaptcha.fields import ReCaptchaV2Field
 
-from api.models import SSHKey, Hostname, OAuth2Token
+from api.models import SSHKey, Hostname, OAuth2Token, OAuth2Client, OAuth2Code
 
 
 User = get_user_model()
@@ -12,12 +12,13 @@ User = get_user_model()
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('username', 'email', 'password', 'recaptcha')
+        fields = ('uid', 'username', 'email', 'password', 'recaptcha')
         extra_kwargs = {
             'password': {'write_only': True},
             'recaptcha': {'write_only': True},
         }
 
+    uid = serializers.CharField(read_only=True)
     recaptcha = ReCaptchaV2Field()
 
     def __init__(self, *args, **kwargs):
@@ -40,13 +41,13 @@ class UserConfirmSerializer(serializers.Serializer):
     ts = serializers.FloatField()
     signature = serializers.CharField()
 
-    def __init__(self, pk, *args, **kwargs):
-        self.pk = pk
+    def __init__(self, uid, *args, **kwargs):
+        self.uid = uid
         super().__init__(*args, **kwargs)
 
     def validate(self, attrs):
         try:
-            user = User.objects.get(pk=self.pk)
+            user = User.objects.get(uid=self.uid)
         except User.DoesNotExist:
             raise serializers.ValidationError('Invalid signature')
         try:
@@ -57,25 +58,27 @@ class UserConfirmSerializer(serializers.Serializer):
         return attrs
 
     def create(self, validated_data):
-        user = User.objects.get(pk=self.pk)
+        user = User.objects.get(uid=self.uid)
         user.is_active = True
         user.is_confirmed = True
         return user
 
 
-class OAuth2ClientSerializer(serializers.Serializer):
-    user = UserSerializer(fields=('username',))
-    client_name = serializers.CharField()
-    website_uri = serializers.URLField()
-    description = serializers.CharField()
-    scope = serializers.ListField(child=serializers.CharField())
+class OAuth2ClientSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OAuth2Client
+        fields = ('user', 'client_id', 'client_name', 'website_uri', 'description', 'scope')
+
+    user = UserSerializer(fields=('uid', 'username',))
 
 
-class OAuth2TokenSerializer(serializers.Serializer):
+class OAuth2TokenSerializer(serializers.ModelSerializer):
     class Meta:
         model = OAuth2Token
-        fields = ('client', 'token_type', 'scope', 'revoked', 'issued_at', 'expires_in')
+        fields = ('uid', 'client', 'token_type', 'scope', 'revoked',
+                  'issued_at', 'expires_in')
 
+    uid = serializers.CharField()
     client = OAuth2ClientSerializer()
 
 
@@ -86,10 +89,15 @@ class OAuth2AuthzCodeSerializer(serializers.Serializer):
 class SSHKeySerializer(serializers.ModelSerializer):
     class Meta:
         model = SSHKey
-        fields = ('name', 'key', 'type', 'created', 'modified')
+        fields = ('uid', 'name', 'key', 'type', 'created', 'modified')
+
+    uid = serializers.CharField()
 
 
 class HostnameSerializer(serializers.ModelSerializer):
     class Meta:
         model = Hostname
-        fields = ('name',)
+        fields = ('uid', 'name', 'internal', 'addresses', 'created', 'modified')
+
+    uid = serializers.CharField()
+    internal = serializers.BooleanField(read_only=True)

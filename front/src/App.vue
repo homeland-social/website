@@ -22,6 +22,46 @@
     <v-main>
       <router-view/>
     </v-main>
+
+    <v-footer
+      padless
+      color="primary lighten-1"
+    >
+      <v-row
+        no-gutters
+        justify="center"
+      >
+        <v-btn
+          to="/about"
+          text rounded
+          color="white"
+          class="my-2"
+        >About</v-btn>
+        <v-btn
+          to="/how-it-works"
+          text rounded
+          color="white"
+          class="my-2"
+        >How it works</v-btn>
+        <v-btn
+          to="/privacy"
+          text rounded
+          color="white"
+          class="my-2"
+        >Privacy</v-btn>
+        <v-btn
+          href="https://github.com/shanty-social/"
+          target="_new"
+          text rounded
+          color="white"
+          class="my-2"
+        >Github</v-btn>
+        <v-col
+          class="primary lighten-2 py-4 text-center white--text"
+          cols="12"
+        >{{ new Date().getFullYear() }} - <strong>Shanty.social</strong></v-col>
+      </v-row>
+    </v-footer>
   </v-app>
 </template>
 

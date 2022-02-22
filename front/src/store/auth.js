@@ -1,8 +1,5 @@
 import axios from 'axios'
 
-axios.defaults.xsrfCookieName = 'csrftoken'
-axios.defaults.xsrfHeaderName = 'X-CSRFToken'
-
 export default {
   namespaced: true,
 
@@ -16,7 +13,7 @@ export default {
       return state.user !== null && state.user !== false
     },
 
-    user (state) {
+    whoami (state) {
       return state.user
     }
   },
@@ -32,23 +29,23 @@ export default {
   },
 
   actions: {
-    /* Called by router to check auth status. */
-    whoami ({ commit, state }) {
+    whoami ({ state, commit }) {
       return new Promise((resolve) => {
         if (state.user === null) {
           axios.get('/api/users/whoami/')
             .then((r) => {
               commit('updateUser', r.data)
-              resolve(true)
+              resolve(state.user)
             })
             .catch(() => {
               commit('updateUser', false)
-              resolve(false)
+              resolve(null)
             })
         } else if (state.user === false) {
-          resolve(false)
-        } else {
-          resolve(true)
+          resolve(null);
+        } else if (state.user) {
+          resolve(state.user)
+          return
         }
       })
     },

@@ -5,6 +5,8 @@ import logging
 from datetime import timedelta
 from uuid import uuid4
 
+from hashids import Hashids
+
 from authlib.oauth2.rfc6749 import (
     ClientMixin, TokenMixin, AuthorizationCodeMixin,
 )
@@ -13,6 +15,7 @@ from django.conf import settings
 from django.db import models
 from django.utils import timezone
 from django.utils.http import urlencode
+from django.utils.functional import cached_property
 from django.urls import reverse
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import BaseUserManager
@@ -32,12 +35,44 @@ TOKEN_AUTH_METHODS = [
     ('client_secret_basic', 'client_secret_basic'),
 ]
 
+hashids = Hashids(salt=settings.SECRET_KEY)
+
 
 def grant_types_default():
     return ['authorization_code', 'refresh_token']
 
 
-class UserManager(BaseUserManager):
+class HashidsQuerySet(models.QuerySet):
+    def get(self, *args, **kwargs):
+        uid = kwargs.pop('uid', None)
+        if uid:
+            kwargs['id'] = hashids.decode(uid)[0]
+        return super().get(*args, **kwargs)
+
+    def filter(self, *args, **kwargs):
+        uid = kwargs.pop('uid', None)
+        if uid:
+            kwargs['id'] = hashids.decode(uid)[0]
+        return super().filter(*args, **kwargs)
+
+
+class HashidsManagerMixin:
+    def get_queryset(self):
+        return HashidsQuerySet(
+            model=self.model, using=self._db, hints=self._hints)
+
+
+class HashidsManager(HashidsManagerMixin, models.Manager):
+    pass
+
+
+class HashidsModelMixin:
+    @property
+    def uid(self):
+        return hashids.encode(self.id)
+
+
+class UserManager(HashidsManagerMixin, BaseUserManager):
     def create_user(self, email, password, **kwargs):
         kwargs.setdefault('is_active', False)
         email = self.normalize_email(email)
@@ -60,7 +95,7 @@ class UserManager(BaseUserManager):
         return self.create_user(email, password, **kwargs)
 
 
-class User(AbstractUser):
+class User(HashidsModelMixin, AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
@@ -85,7 +120,8 @@ class User(AbstractUser):
 
     def send_confirmation_email(self, request):
         params = self.generate_confirmation()
-        url = request.build_absolute_uri(reverse('user-confirm', kwargs={'pk': self.id}))
+        url = request.build_absolute_uri(
+            reverse('user-confirm', kwargs={'uid': self.uid}))
         url += '?' + urlencode(params)
         send_mail(
             'email/user_confirmation.eml',
@@ -105,7 +141,7 @@ class User(AbstractUser):
         return True
 
 
-class SSHKey(models.Model):
+class SSHKey(HashidsModelMixin, models.Model):
     user = models.ForeignKey(User, db_index=True,
                              on_delete=models.CASCADE)
     name = models.UUIDField(unique=True, default=uuid4)
@@ -114,20 +150,34 @@ class SSHKey(models.Model):
     created = models.DateTimeField(default=timezone.now)
     modified = models.DateTimeField(auto_now=True)
 
+    objects = HashidsManager()
 
-class Hostname(models.Model):
+
+class Hostname(HashidsModelMixin, models.Model):
     user = models.ForeignKey(User, db_index=True,
                              on_delete=models.CASCADE)
     name = models.CharField(max_length=128, unique=True)
+    addresses = ArrayField(
+        models.GenericIPAddressField(), null=True
+    )
     created = models.DateTimeField(default=timezone.now)
     modified = models.DateTimeField(auto_now=True)
 
+    @cached_property
+    def internal(self):
+        for domain in settings.SHARED_DOMAINS:
+            if self.name.endswith(f'.{domain}'):
+                return True
+        return False
+
+    objects = HashidsManager()
+
 
 # https://docs.authlib.org/en/latest/django/2/authorization-server.html
-class OAuth2Client(models.Model, ClientMixin):
+class OAuth2Client(HashidsModelMixin, models.Model, ClientMixin):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    client_id = models.CharField(max_length=36, default=uuid4, unique=True)
-    client_secret = models.CharField(max_length=36, default=uuid4, null=False)
+    client_id = models.UUIDField(unique=True)
+    client_secret = models.UUIDField(null=False)
     client_name = models.CharField(max_length=120)
     website_uri = models.URLField(max_length=256, null=True)
     description = models.TextField(null=True)
@@ -141,6 +191,8 @@ class OAuth2Client(models.Model, ClientMixin):
     token_endpoint_auth_method = models.CharField(
         choices=TOKEN_AUTH_METHODS, max_length=120, null=False,
         default='client_secret_post')
+
+    objects = HashidsManager()
 
     def get_client_id(self):
         return self.client_id
@@ -162,7 +214,7 @@ class OAuth2Client(models.Model, ClientMixin):
         return bool(self.client_secret)
 
     def check_client_secret(self, client_secret):
-        return self.client_secret == client_secret
+        return str(self.client_secret) == client_secret
 
     def check_token_endpoint_auth_method(self, method):
         return self.token_endpoint_auth_method == method
@@ -172,13 +224,13 @@ class OAuth2Client(models.Model, ClientMixin):
 
     def check_grant_type(self, grant_type):
         return grant_type in self.grant_types
-        print('Checking grant_type: %s, %s' % (grant_type, allowed))
         return allowed
 
 
-class OAuth2Token(models.Model, TokenMixin):
+class OAuth2Token(HashidsModelMixin, models.Model, TokenMixin):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    client_id = models.CharField(max_length=36, db_index=True)
+    client = models.ForeignKey(
+        OAuth2Client, to_field="client_id", db_column="client", on_delete=models.CASCADE)
     token_type = models.CharField(max_length=40)
     access_token = models.CharField(max_length=255, unique=True, null=False)
     refresh_token = models.CharField(max_length=255, db_index=True, null=False)
@@ -187,8 +239,10 @@ class OAuth2Token(models.Model, TokenMixin):
     issued_at = models.DateTimeField(null=False, default=timezone.now)
     expires_in = models.IntegerField(null=False, default=0)
 
+    objects = HashidsManager()
+
     def get_client_id(self):
-        return self.client_id
+        return self.client.client_id
 
     def get_scope(self):
         return self.scope
@@ -200,14 +254,17 @@ class OAuth2Token(models.Model, TokenMixin):
         return self.issued_at + timedelta(seconds=self.expires_in)
 
 
-class OAuth2Code(models.Model, AuthorizationCodeMixin):
+class OAuth2Code(HashidsModelMixin, models.Model, AuthorizationCodeMixin):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    client_id = models.CharField(max_length=36, db_index=True)
+    client = models.ForeignKey(
+        OAuth2Client, to_field="client_id", db_column="client", on_delete=models.CASCADE)
     code = models.CharField(max_length=120, unique=True, null=False)
     redirect_uri = models.TextField(null=True)
     response_type = models.TextField(null=True)
     scope = ArrayField(models.CharField(max_length=24), null=True)
     auth_time = models.DateTimeField(null=False, default=timezone.now)
+
+    objects = HashidsManager()
 
     def is_expired(self):
         return self.auth_time + timedelta(seconds=300) < timezone.now()
