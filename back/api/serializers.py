@@ -78,7 +78,7 @@ class OAuth2TokenSerializer(serializers.ModelSerializer):
         fields = ('uid', 'client', 'token_type', 'scope', 'revoked',
                   'issued_at', 'expires_in')
 
-    uid = serializers.CharField()
+    uid = serializers.CharField(read_only=True)
     client = OAuth2ClientSerializer()
 
 
@@ -91,7 +91,7 @@ class SSHKeySerializer(serializers.ModelSerializer):
         model = SSHKey
         fields = ('uid', 'name', 'key', 'type', 'created', 'modified')
 
-    uid = serializers.CharField()
+    uid = serializers.CharField(read_only=True)
 
 
 class HostnameSerializer(serializers.ModelSerializer):
@@ -99,5 +99,5 @@ class HostnameSerializer(serializers.ModelSerializer):
         model = Hostname
         fields = ('uid', 'name', 'internal', 'addresses', 'created', 'modified')
 
-    uid = serializers.CharField()
+    uid = serializers.CharField(read_only=True)
     internal = serializers.BooleanField(read_only=True)

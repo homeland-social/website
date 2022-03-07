@@ -4,7 +4,7 @@ from rest_framework import routers
 
 from api.views import (
     OAuthAuthorizationView, OAuthTokenView, SSHKeyViewSet, HostnameViewSet,
-    OAuth2TokenViewSet, UserViewSet,
+    OAuth2TokenViewSet, UserViewSet, OAuthJWKSView, OpenIDCMetadataView,
 )
 
 
@@ -24,5 +24,15 @@ urlpatterns = [
         r'oauth2/token/',
         OAuthTokenView.as_view(),
         name='oauth_token_view'
+    ),
+    path(
+        r'oauth2/jwks/',
+        OAuthJWKSView.as_view(),
+        name='oauth_jwks_view'
+    ),
+    path(
+        r'oauth2/metadata/',
+        OpenIDCMetadataView.as_view(),
+        name='oauth_openidc_metadata_view'
     ),
 ] + router.urls

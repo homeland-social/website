@@ -1,11 +1,11 @@
 import Vue from 'vue'
 import axios from 'axios'
-import App from './App.vue'
-import vuetify from './plugins/vuetify'
 import VuePageTitle from 'vue-page-title'
 import VueTimeago from 'vue-timeago'
+import App from './App.vue'
 import store from './store'
 import router from './router'
+import vuetify from './plugins/vuetify'
 
 axios.defaults.xsrfCookieName = 'csrftoken'
 axios.defaults.xsrfHeaderName = 'X-CSRFToken'

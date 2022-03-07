@@ -11,24 +11,24 @@ CLIENT_SECRET = b'50ec237f-20b0-4a47-8a25-b329f6d53beb'
 AUTHZ_PARAMS = {
     'response_type': 'code',
     'client_id': '19bbc55f-0f6f-4fca-95bc-f86286db43da',
-    'redirect_uri': 'http://localhost:5000/oauth/',
+    'redirect_uri': 'http://localhost:8080/api/oauth/shanty/authorize/',
     'state': 'lmnopqrstuv',
 }
 
 AUTHZ_RESPONSE = {
     'client': {
         'user': {
-            'uid': '0Q',
-            'username': 'testuser',
+            'uid': 'lv41yY2XbAO6',
+            'username': 'testuser'
         },
-        'client_id': '19bbc55f-0f6f-4fca-95bc-f86286db43da', 
+        'client_id': '19bbc55f-0f6f-4fca-95bc-f86286db43da',
         'client_name': 'Foobar',
-        "website_uri": "https://foobar.org/foo-bar-baz/",
-        "description": "Lorem ipsum dolor sit amet. Ut galisum ipsa ut eius sequi sit vitae sint vel commodi quia a voluptatem ducimus et minima minus. Vel nulla eaque et quia quidem a similique dolores sit mollitia odio est modi maiores eum ratione sunt. Quo ratione minima ab modi voluptatem et vitae tempora quo ipsum molestiae est adipisci nesciunt eum odit laborum. Quo iusto perferendis ut quos aliquam qui molestiae aperiam.",
+        'website_uri': 'https://foobar.org/foo-bar-baz/',
+        'description': 'Lorem ipsum dolor sit amet. Ut galisum ipsa ut eius sequi sit vitae sint vel commodi quia a voluptatem ducimus et minima minus. Vel nulla eaque et quia quidem a similique dolores sit mollitia odio est modi maiores eum ratione sunt. Quo ratione minima ab modi voluptatem et vitae tempora quo ipsum molestiae est adipisci nesciunt eum odit laborum. Quo iusto perferendis ut quos aliquam qui molestiae aperiam.',
         'scope': [
-            'read-only',
-        ],
-    },
+            'read-only', 'openid', 'email', 'profile'
+        ]
+    }
 }
 
 

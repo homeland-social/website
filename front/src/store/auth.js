@@ -4,62 +4,61 @@ export default {
   namespaced: true,
 
   state: {
-    user: null
+    auth: null
   },
 
   getters: {
     isAuthenticated (state) {
       // TODO: may also need to inspect the cookie.
-      return state.user !== null && state.user !== false
+      return state.auth !== null && state.auth !== false
     },
 
     whoami (state) {
-      return state.user
+      return state.auth
     }
   },
 
   mutations: {
-    updateUser (state, newUser) {
-      state.user = newUser
+    updateAuth (state, user) {
+      state.auth = user
     },
-
-    removeUser (state) {
-      state.user = null
-    }
   },
 
   actions: {
     whoami ({ state, commit }) {
       return new Promise((resolve) => {
-        if (state.user === null) {
-          axios.get('/api/users/whoami/')
-            .then((r) => {
-              commit('updateUser', r.data)
-              resolve(state.user)
-            })
-            .catch(() => {
-              commit('updateUser', false)
-              resolve(null)
-            })
-        } else if (state.user === false) {
-          resolve(null);
-        } else if (state.user) {
-          resolve(state.user)
+        if (state.auth === false) {
+          resolve(null)
+          return
+        } else if (state.auth) {
+          resolve(state.auth)
           return
         }
+        axios
+          .get('/api/users/whoami/')
+          .then((r) => {
+            commit('updateAuth', r.data)
+            resolve(state.auth)
+          })
+          .catch(() => {
+            commit('updateAuth', false)
+            resolve(null)
+          })
       })
     },
 
     async login ({ commit }, data) {
       const r = await axios.post('/api/users/login/', data)
-      commit('updateUser', r.data)
+      commit('updateAuth', r.data)
     },
 
     logout ({ commit }) {
       axios
         .post('/api/users/logout/')
-        .then(console.log)
-      commit('removeUser')
+        .then(() => {
+          commit('updateAuth', null)
+        })
+        .catch(console.error)
     }
   }
 }

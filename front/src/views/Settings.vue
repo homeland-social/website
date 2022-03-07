@@ -36,16 +36,7 @@
         <v-flex
           xs8 sm3 md8 ml-4
         >
-          <v-card
-            v-if="selected !== null"
-            class="elevation-12"
-          >
-            <v-toolbar dark color="primary">
-              <v-toolbar-title v-text="items[selected].name"></v-toolbar-title>
-            </v-toolbar>
-            <v-card-text><component :is="items[selected].component"/>
-            </v-card-text>
-          </v-card>
+          <component :is="items[selected].component"/>
         </v-flex>
       </v-layout>
     </v-container>
@@ -81,19 +72,19 @@ export default {
   },
 
   computed: {
+    ...mapGetters({
+      hostnames: 'hostnames/count',
+      sshkeys: 'sshkeys/count',
+      oauthtokens: 'oauthtokens/count'
+    }),
+
     items () {
       return [
         { icon: 'mdi-dns-outline', name: 'Hostnames', count: this.hostnames, component: Hostnames },
         { icon: 'mdi-key-outline', name: 'SSH keys' , count: this.sshkeys, component: SSHKeys },
         { icon: 'mdi-server', name: 'OAuth tokens', count: this.oauthtokens, component: OAuthTokens }
       ]
-    },
-
-    ...mapGetters({
-        hostnames: 'hostnames/count',
-        sshkeys: 'sshkeys/count',
-        oauthtokens: 'oauthtokens/count'
-      })
+    }
   },
 }
 </script>

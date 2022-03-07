@@ -2,7 +2,9 @@ import re
 import itertools
 import hmac
 import socket
+import json
 from urllib.parse import urlparse, urlunparse
+from functools import cache as memoize
 
 import dns.resolver
 
@@ -40,6 +42,12 @@ RESOLVER = dns.resolver.Resolver(configure=False)
 RESOLVER.nameservers = settings.NAME_SERVERS
 
 User = get_user_model()
+
+
+@memoize
+def _load_pub():
+    with open(settings.AUTHLIB_JWK_PUB, 'rb') as f:
+        return json.load(f)
 
 
 class UserViewSet(ModelViewSet):
@@ -117,6 +125,21 @@ class OAuth2TokenViewSet(DestroyModelMixin, ReadOnlyModelViewSet):
 
     def get_queryset(self):
         return self.queryset.filter(user=self.request.user)
+
+
+class OpenIDCMetadataView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        return Response(
+            settings.AUTHLIB_OPENIDC_METADATA, status=status.HTTP_200_OK)
+
+
+class OAuthJWKSView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        return Response({ 'keys': [_load_pub()]}, status=status.HTTP_200_OK)
 
 
 class SSHKeyViewSet(ModelViewSet):

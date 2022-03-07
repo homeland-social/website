@@ -1,14 +1,19 @@
 import logging
+import json
+from functools import cache as memoize
 
 from authlib.integrations.django_oauth2 import (
     AuthorizationServer, BearerTokenValidator,
 )
 from authlib.oauth2.rfc6749 import grants
 from authlib.common.security import generate_token
+from authlib.oidc.core import UserInfo
+from authlib.oidc.core.grants import OpenIDCode
 
 from rest_framework import authentication, exceptions, permissions
 
 from django.contrib.auth import get_user_model
+from django.conf import settings
 
 from api.models import OAuth2Client, OAuth2Token, OAuth2Code
 
@@ -20,6 +25,13 @@ SERVER = AuthorizationServer(OAuth2Client, OAuth2Token)
 User = get_user_model()
 
 
+
+@memoize
+def _load_key():
+    with open(settings.AUTHLIB_JWK, 'rb') as f:
+        return json.load(f)
+
+
 class AuthorizationCodeGrant(grants.AuthorizationCodeGrant):
     def save_authorization_code(self, code, request):
         return OAuth2Code.objects.create(
@@ -29,6 +41,7 @@ class AuthorizationCodeGrant(grants.AuthorizationCodeGrant):
             response_type=request.response_type,
             scope=request.client.scope,
             user=request.user,
+            nonce=request.data.get('nonce')
         )
 
     def query_authorization_code(self, code, client):
@@ -118,5 +131,26 @@ class OAuth2Scope(permissions.BasePermission):
             return []
 
 
-SERVER.register_grant(AuthorizationCodeGrant)
+class OAuth2OpenIDCode(OpenIDCode):
+    def exists_nonce(self, nonce, request):
+        return OAuth2Code.objects.filter(
+            client__client_id=request.client_id, nonce=nonce).exists()
+
+    def get_jwt_config(self, grant):
+        return {
+            'key': _load_key(),
+            'alg': 'RS256',
+            'iss': settings.AUTHLIB_OPENIDC_METADATA['issuer'],
+            'exp': 3600,
+        }
+
+    def generate_user_info(self, user, scope):
+        user_info = UserInfo(sub=user.uid, name=user.username)
+        if 'email' in scope:
+            user_info['email'] = user.email
+        return user_info
+
+
+SERVER.register_grant(
+    AuthorizationCodeGrant, [OAuth2OpenIDCode(require_nonce=True)])
 SERVER.register_grant(RefreshTokenGrant)

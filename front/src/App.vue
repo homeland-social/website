@@ -10,7 +10,7 @@
           to="/"
           light
         >
-          Shanty social
+          Homeland social
           <v-icon>mdi-earth</v-icon>
         </v-btn>
       </div>
@@ -32,34 +32,19 @@
         justify="center"
       >
         <v-btn
-          to="/about"
+          v-for="(link, i) of footerLinks"
+          :key="i"
+          :to="link.to"
+          :href="link.href"
+          :target="link.target"
           text rounded
           color="white"
           class="my-2"
-        >About</v-btn>
-        <v-btn
-          to="/how-it-works"
-          text rounded
-          color="white"
-          class="my-2"
-        >How it works</v-btn>
-        <v-btn
-          to="/privacy"
-          text rounded
-          color="white"
-          class="my-2"
-        >Privacy</v-btn>
-        <v-btn
-          href="https://github.com/shanty-social/"
-          target="_new"
-          text rounded
-          color="white"
-          class="my-2"
-        >Github</v-btn>
+        >{{ link.text }}</v-btn>
         <v-col
           class="primary lighten-2 py-4 text-center white--text"
           cols="12"
-        >{{ new Date().getFullYear() }} - <strong>Shanty.social</strong></v-col>
+        >{{ new Date().getFullYear() }} - <strong>Homeland.social</strong></v-col>
       </v-row>
     </v-footer>
   </v-app>
@@ -70,8 +55,21 @@ import { mapActions } from 'vuex'
 import Account from '@/components/Account'
 
 export default {
+  name: 'App',
+
   components: {
     Account
+  },
+
+  data () {
+    return {
+      footerLinks: [
+        { text: 'About', to: '/about' },
+        { text: 'How it works', to: '/how-it-works' },
+        { text: 'Privacy', to: '/privacy' },
+        { text: 'Github', href: 'https://github.com/shanty-social/', target: '_new' }
+      ]
+    }
   },
 
   methods: {

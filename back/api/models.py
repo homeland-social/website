@@ -35,7 +35,7 @@ TOKEN_AUTH_METHODS = [
     ('client_secret_basic', 'client_secret_basic'),
 ]
 
-hashids = Hashids(salt=settings.SECRET_KEY)
+HASHIDS_LENGTH = 12
 
 
 def grant_types_default():
@@ -46,13 +46,13 @@ class HashidsQuerySet(models.QuerySet):
     def get(self, *args, **kwargs):
         uid = kwargs.pop('uid', None)
         if uid:
-            kwargs['id'] = hashids.decode(uid)[0]
+            kwargs['id'] = self.model.hashids().decode(uid)[0]
         return super().get(*args, **kwargs)
 
     def filter(self, *args, **kwargs):
         uid = kwargs.pop('uid', None)
         if uid:
-            kwargs['id'] = hashids.decode(uid)[0]
+            kwargs['id'] = self.model.hashids().decode(uid)[0]
         return super().filter(*args, **kwargs)
 
 
@@ -67,9 +67,18 @@ class HashidsManager(HashidsManagerMixin, models.Manager):
 
 
 class HashidsModelMixin:
+    @classmethod
+    def hashids(cls):
+        hashids = getattr(cls, '_hashids', None)
+        if not hashids:
+            hashids = Hashids(
+                min_length=HASHIDS_LENGTH, salt=f'{cls.__name__}:{settings.SECRET_KEY}')
+            setattr(cls, '_hashids', hashids)
+        return hashids
+
     @property
     def uid(self):
-        return hashids.encode(self.id)
+        return self.hashids().encode(self.id)
 
 
 class UserManager(HashidsManagerMixin, BaseUserManager):
@@ -195,7 +204,7 @@ class OAuth2Client(HashidsModelMixin, models.Model, ClientMixin):
     objects = HashidsManager()
 
     def get_client_id(self):
-        return self.client_id
+        return str(self.client_id)
 
     def get_default_redirect_uri(self):
         return self.default_redirect_uri
@@ -263,6 +272,7 @@ class OAuth2Code(HashidsModelMixin, models.Model, AuthorizationCodeMixin):
     response_type = models.TextField(null=True)
     scope = ArrayField(models.CharField(max_length=24), null=True)
     auth_time = models.DateTimeField(null=False, default=timezone.now)
+    nonce = models.CharField(max_length=120, null=True)
 
     objects = HashidsManager()
 
@@ -276,4 +286,7 @@ class OAuth2Code(HashidsModelMixin, models.Model, AuthorizationCodeMixin):
         return self.scope
 
     def get_auth_time(self):
-        return self.auth_time
+        return self.auth_time.timestamp()
+
+    def get_nonce(self):
+        return self.nonce

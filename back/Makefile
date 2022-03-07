@@ -14,7 +14,7 @@ deps: .venv
 
 .PHONY: test
 test: deps
-	${DOCKER_COMPOSE} run --rm --entrypoint="python3 manage.py test" website-migrate
+	${DOCKER_COMPOSE} run --rm --entrypoint="python3 manage.py test" website-back
 
 .PHONY: lint
 lint: deps

@@ -21,6 +21,8 @@ services:
     volumes:
       - ./back:/app:ro
       - ./docker/website/entrypoint-api.sh:/entrypoint.sh:ro
+      - ./docker/website/jwk:/run/secrets/jwk:ro
+      - ./docker/website/jwk.pub:/run/secrets/jwk.pub:ro
     env_file:
       # See .env.template for instructions.
       - .env
@@ -34,6 +36,8 @@ services:
       - DJANGO_NAME_SERVERS=1.1.1.1,8.8.8.8
       - DJANGO_SHARED_DOMAINS=shanty.social,shanty.local
       - AUTHLIB_INSECURE_TRANSPORT=true
+      - AUTHLIB_JWK=/run/secrets/jwk
+      - AUTHLIB_JWK_PUB=/run/secrets/jwk.pub
 
   website-front:
     image: website/front

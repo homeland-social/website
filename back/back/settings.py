@@ -225,6 +225,69 @@ AUTHLIB_OAUTH2_PROVIDER = {
     'refresh_token_generator': True,
 }
 
+AUTHLIB_JWK = os.getenv('AUTHLIB_JWK', '/run/secrets/jwk')
+AUTHLIB_JWK_PUB = os.getenv('AUTHLIB_JWK_PUB', '/run/secrets/jwk.pub')
+AUTHLIB_OPENIDC_METADATA = {
+ "issuer": "http://shanty.social/",
+ "authorization_endpoint": "http://www.shanty.local:8000/api/oauth2/"
+                           "authorize/",
+ "device_authorization_endpoint": "http://www.shanty.local:8000/api/oauth2/"
+                                  "device/code",
+ "token_endpoint": "http://www.shanty.local:8000/api/oauth2//token",
+ "userinfo_endpoint": "http://www.shanty.local:8000/api/users/whoami/",
+ "revocation_endpoint": "http://www.shanty.local:8000/api/oauth2/revoke",
+ "jwks_uri": "http://www.shanty.local:8000/api/oauth2/jwks/",
+ "response_types_supported": [
+  "code",
+  "token",
+  "id_token",
+  "code token",
+  "code id_token",
+  "token id_token",
+  "code token id_token",
+  "none"
+ ],
+ "subject_types_supported": [
+  "public"
+ ],
+ "id_token_signing_alg_values_supported": [
+  "RS256"
+ ],
+ "scopes_supported": [
+  "openid",
+  "email",
+  "profile"
+ ],
+ "token_endpoint_auth_methods_supported": [
+  "client_secret_post",
+  "client_secret_basic"
+ ],
+ "claims_supported": [
+  "aud",
+  "email",
+  "email_verified",
+  "exp",
+  "family_name",
+  "given_name",
+  "iat",
+  "iss",
+  "locale",
+  "name",
+  "picture",
+  "sub"
+ ],
+ "code_challenge_methods_supported": [
+  "plain",
+  "S256"
+ ],
+ "grant_types_supported": [
+  "authorization_code",
+  "refresh_token",
+  "urn:ietf:params:oauth:grant-type:device_code",
+  "urn:ietf:params:oauth:grant-type:jwt-bearer"
+ ]
+}
+
 SHARED_DOMAINS = os.getenv(
     'DJANGO_SHARED_DOMAINS', 'shanty.social').split(',')
 
