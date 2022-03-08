@@ -13,6 +13,7 @@ services:
       dockerfile: docker/website/Dockerfile
       context: .
       target: python
+    command: api
     networks:
       - private
     depends_on:
@@ -20,7 +21,7 @@ services:
       - website-redis
     volumes:
       - ./back:/app:ro
-      - ./docker/website/entrypoint-api.sh:/entrypoint.sh:ro
+      - ./docker/website/entrypoint.sh:/entrypoint.sh:ro
       - ./docker/website/jwk:/run/secrets/jwk:ro
       - ./docker/website/jwk.pub:/run/secrets/jwk.pub:ro
     env_file:
@@ -45,13 +46,14 @@ services:
       dockerfile: docker/website/Dockerfile
       context: .
       target: node
+    command: npm run serve
     networks:
       - private
     depends_on:
       - website-back
     volumes:
       - ./front:/app:ro
-      - ./docker/website/entrypoint-vue.sh:/entrypoint.sh:ro
+      - ./docker/website/entrypoint.sh:/entrypoint.sh:ro
     environment:
       - VUE_HOST=0.0.0.0
       - VUE_PORT=8000
@@ -59,16 +61,13 @@ services:
       - API_PORT=8000
 
   website-migrate:
-    image: website/migrate
-    build:
-      dockerfile: docker/website/Dockerfile
-      context: .
-      target: migrate
+    image: website/back
+    command: migrate
     networks:
       - private
     volumes:
       - ./back:/app:ro
-      - ./docker/website/entrypoint-migrate.sh:/entrypoint.sh:ro
+      - ./docker/website/entrypoint.sh:/entrypoint.sh:ro
     depends_on:
       - website-db
     env_file:
@@ -84,16 +83,13 @@ services:
       - DJANGO_SHARED_DOMAINS=shanty.social,shanty.local
 
   website-celery:
-    image: website/celery
-    build:
-      dockerfile: docker/website/Dockerfile
-      context: .
-      target: celery
+    image: website/back
+    command: celery
     networks:
       - private
     volumes:
       - ./back:/app:ro
-      - ./docker/website/entrypoint-celery.sh:/entrypoint.sh:ro
+      - ./docker/website/entrypoint.sh:/entrypoint.sh:ro
     depends_on:
       - website-db
       - website-redis
@@ -113,15 +109,12 @@ services:
 
   website-beat:
     image: website/beat
-    build:
-      dockerfile: docker/website/Dockerfile
-      context: .
-      target: beat
+    command: beat
     networks:
       - private
     volumes:
       - ./back:/app:ro
-      - ./docker/website/entrypoint-beat.sh:/entrypoint.sh:ro
+      - ./docker/website/entrypoint.sh:/entrypoint.sh:ro
     depends_on:
       - website-db
       - website-redis

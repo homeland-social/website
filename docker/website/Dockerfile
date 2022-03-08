@@ -1,7 +1,7 @@
 FROM python:3-alpine AS python
 
 ADD ./back /app
-ADD ./docker/website/entrypoint-api.sh /entrypoint.sh
+ADD ./docker/website/entrypoint.sh /entrypoint.sh
 
 RUN wget https://raw.githubusercontent.com/eficode/wait-for/master/wait-for
 RUN chmod +x /wait-for
@@ -19,33 +19,12 @@ RUN apk add --no-cache git postgresql-client postgresql-dev gcc \
 ENTRYPOINT [ "/entrypoint.sh" ]
 
 
-FROM python AS celery
-
-ADD ./docker/website/entrypoint-celery.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-
-
-FROM python AS beat
-
-ADD ./docker/website/entrypoint-beat.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-
-
-FROM python AS migrate
-
-ADD ./docker/website/entrypoint-migrate.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-
-
 FROM python AS python-build
 
 RUN python3 manage.py collectstatic --noinput
 
 
 FROM node:17-alpine AS node
-
-ADD ./docker/website/entrypoint-vue.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
 
 # For webpack:
 # https://github.com/webpack/webpack/issues/14532
@@ -54,8 +33,6 @@ ADD ./front /app
 
 WORKDIR /app
 RUN npm i
-
-ENTRYPOINT [ "/entrypoint.sh" ]
 
 
 FROM node AS node-build

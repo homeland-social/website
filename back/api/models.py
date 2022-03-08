@@ -290,3 +290,12 @@ class OAuth2Code(HashidsModelMixin, models.Model, AuthorizationCodeMixin):
 
     def get_nonce(self):
         return self.nonce
+
+
+class Console(models.Model):
+    uuid = models.UUIDField(null=False, primary_key=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    token = models.UUIDField(null=False, default=uuid4)
+    created = models.DateTimeField(default=timezone.now)
+    modified = models.DateTimeField(auto_now=True)
+    used = models.DateTimeField(null=True)

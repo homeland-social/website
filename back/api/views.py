@@ -30,10 +30,11 @@ from rest_framework.permissions import (
 )
 
 from api.permissions import CreateOrIsAuthenticated
-from api.models import SSHKey, Hostname, OAuth2Token
+from api.models import SSHKey, Hostname, OAuth2Token, Console
 from api.serializers import (
     UserSerializer, OAuth2AuthzCodeSerializer, SSHKeySerializer,
     HostnameSerializer, OAuth2TokenSerializer, UserConfirmSerializer,
+    ConsoleSerializer,
 )
 from api.oauth import SERVER, OAuth2Scope
 
@@ -250,3 +251,16 @@ class HostnameViewSet(ModelViewSet):
                 s.close()
 
         return Response(response, status=status.HTTP_200_OK)
+
+
+class ConsoleViewSet(ModelViewSet):
+    serializer_class = ConsoleSerializer
+    permission_classes = [IsAuthenticated]
+    queryset = Console.objects.all()
+    lookup_field = 'uid'
+
+    def get_queryset(self):
+        return self.queryset.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)

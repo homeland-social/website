@@ -5,6 +5,7 @@ from rest_framework import routers
 from api.views import (
     OAuthAuthorizationView, OAuthTokenView, SSHKeyViewSet, HostnameViewSet,
     OAuth2TokenViewSet, UserViewSet, OAuthJWKSView, OpenIDCMetadataView,
+    ConsoleViewSet,
 )
 
 
@@ -13,6 +14,7 @@ router.register(r'sshkeys', SSHKeyViewSet, basename='sshkey')
 router.register(r'hosts', HostnameViewSet, basename='host')
 router.register(r'tokens', OAuth2TokenViewSet, basename='token')
 router.register(r'users', UserViewSet, basename='user')
+router.register(r'consoles', ConsoleViewSet, basename='console')
 
 urlpatterns = [
     path(

@@ -3,7 +3,9 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from drf_recaptcha.fields import ReCaptchaV2Field
 
-from api.models import SSHKey, Hostname, OAuth2Token, OAuth2Client, OAuth2Code
+from api.models import (
+    SSHKey, Hostname, OAuth2Token, OAuth2Client, OAuth2Code, Console,
+)
 
 
 User = get_user_model()
@@ -101,3 +103,9 @@ class HostnameSerializer(serializers.ModelSerializer):
 
     uid = serializers.CharField(read_only=True)
     internal = serializers.BooleanField(read_only=True)
+
+
+class ConsoleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Console
+        fields = ('uuid', 'token', 'created', 'used')
