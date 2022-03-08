@@ -39,26 +39,11 @@ jobs:
             --target=python \
             -t ${{secrets.DOCKER_USER}}/website-api:${{env.tag}} \
             -t ${{secrets.DOCKER_USER}}/website-api:latest
-          docker build . -f docker/website/Dockerfile \
-            --target=beat \
-            -t ${{secrets.DOCKER_USER}}/website-beat:${{env.tag}} \
-            -t ${{secrets.DOCKER_USER}}/website-beat:latest
-          docker build . -f docker/website/Dockerfile \
-            --target=celery \
-            -t ${{secrets.DOCKER_USER}}/website-celery:${{env.tag}} \
-            -t ${{secrets.DOCKER_USER}}/website-celery:latest
-          docker build . -f docker/website/Dockerfile \
-            --target=migrate \
-            -t ${{secrets.DOCKER_USER}}/website-migrate:${{env.tag}} \
-            -t ${{secrets.DOCKER_USER}}/website-migrate:latest
           docker build . -f docker/powerdns/Dockerfile \
             -t ${{secrets.DOCKER_USER}}/website-dns:${{env.tag}} \
             -t ${{secrets.DOCKER_USER}}/website-dns:latest
           docker push -a ${{secrets.DOCKER_USER}}/website-static
           docker push -a ${{secrets.DOCKER_USER}}/website-api
-          docker push -a ${{secrets.DOCKER_USER}}/website-beat
-          docker push -a ${{secrets.DOCKER_USER}}/website-celery
-          docker push -a ${{secrets.DOCKER_USER}}/website-migrate
           docker push -a ${{secrets.DOCKER_USER}}/website-dns
 
       - name: Docker Hub Description

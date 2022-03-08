@@ -41,6 +41,6 @@ RUN npm run build
 
 FROM nginx:1.21-alpine AS static
 
-COPY --from=node-build /app/dist/static /usr/share/nginx/html/static
+COPY --from=node-build /app/dist/assets /usr/share/nginx/html/assets
 COPY --from=node-build /app/dist/index.html /usr/share/nginx/html
 COPY --from=python-build /app/api/static /usr/share/nginx/html/static
