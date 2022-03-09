@@ -1,8 +1,5 @@
 <template>
-  <v-card
-    v-if="selected !== null"
-    class="elevation-12"
-  >
+  <v-card class="elevation-12">
     <v-toolbar dark color="primary">
       <v-toolbar-title v-text="items[selected].name"></v-toolbar-title>
     </v-toolbar>

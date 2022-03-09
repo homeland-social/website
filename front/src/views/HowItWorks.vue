@@ -21,6 +21,9 @@
                   <v-list-item>
                     <v-list-item-title>Dynamic DNS</v-list-item-title>
                   </v-list-item>
+                  <v-list-item>
+                    <v-list-item-title></v-list-item-title>
+                  </v-list-item>
                 </v-list>
               </v-card-content>
             </v-card>

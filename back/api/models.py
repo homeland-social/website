@@ -184,6 +184,9 @@ class Hostname(HashidsModelMixin, models.Model):
 
 # https://docs.authlib.org/en/latest/django/2/authorization-server.html
 class OAuth2Client(HashidsModelMixin, models.Model, ClientMixin):
+    class Meta:
+        verbose_name = "OAuth2 Client"
+
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     client_id = models.UUIDField(unique=True)
     client_secret = models.UUIDField(null=False)
