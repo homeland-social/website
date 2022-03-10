@@ -31,6 +31,9 @@ jobs:
 
       - name: build and push
         run: |
+          docker build . -f docker/certbot/Dockerfile \
+            -t ${{secrets.DOCKER_USER}}/website-certbot:${{env.tag}} \
+            -t ${{secrets.DOCKER_USER}}/website-certbot:latest
           docker build . -f docker/website/Dockerfile \
             --target=static \
             -t ${{secrets.DOCKER_USER}}/website-static:${{env.tag}} \
@@ -42,6 +45,7 @@ jobs:
           docker build . -f docker/powerdns/Dockerfile \
             -t ${{secrets.DOCKER_USER}}/website-dns:${{env.tag}} \
             -t ${{secrets.DOCKER_USER}}/website-dns:latest
+          docker push -a ${{secrets.DOCKER_USER}}/website-certbot
           docker push -a ${{secrets.DOCKER_USER}}/website-static
           docker push -a ${{secrets.DOCKER_USER}}/website-api
           docker push -a ${{secrets.DOCKER_USER}}/website-dns

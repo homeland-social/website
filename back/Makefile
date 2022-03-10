@@ -34,7 +34,7 @@ migrate:
 
 .PHONY: fixtures
 fixtures:
-	${DOCKER_COMPOSE} run website-back python3 manage.py loaddata --app api user oauth2client
+	${DOCKER_COMPOSE} run website-back python3 manage.py loaddata --app api user oauth2client powerdns
 
 
 .PHONY: resetdb

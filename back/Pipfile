@@ -8,7 +8,7 @@ django = "*"
 django-extensions = "*"
 djangorestframework = "*"
 django-cache-memoize = "*"
-django-powerdns = {ref = "0d630d8", git = "https://btimby@bitbucket.org/btimby/django-powerdns.git"}
+django-powerdns = {ref = "e735beb", git = "https://btimby@bitbucket.org/btimby/django-powerdns.git"}
 django-mailjet = "*"
 django-celery-email = "*"
 django-mail-templated = "*"

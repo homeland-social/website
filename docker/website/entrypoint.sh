@@ -33,5 +33,5 @@ elif [ "${CMD}" == "test" ]; then
     python3 manage.py test
 
 else
-    /bin/sh -c ${CMD}
+    /bin/sh -c "${CMD}"
 fi

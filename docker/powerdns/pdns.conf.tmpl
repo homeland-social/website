@@ -27,10 +27,11 @@ local-address=0.0.0.0
 local-port=53
 
 # loglevel	Amount of logging. Higher is more. Do not set below 3
-loglevel=4
+loglevel=${PDNS_LOG_LEVEL}
 
 # master	Act as a master
-master=yes
+master=${PDNS_MASTER}
+slave=${PDNS_SLAVE}
 
 # negquery-cache-ttl	Seconds to store packets in the PacketCache
 negquery-cache-ttl=60
@@ -48,16 +49,13 @@ socket-dir=/var/run
 version-string=powerdns
 
 # webserver	Start a webserver for monitoring
-webserver=no
+webserver=${PDNS_WEBSERVER}
+webserver-address=${PDNS_WEBSERVER_HOST}
+webserver-port=${PDNS_WEBSERVER_PORT}
+webserver-allow-from=${PDNS_WEBSERVER_ACL}
+api=yes
+api-key=${PDNS_API_KEY}
 
-launch+=gpgsql
-
-# gpgsql parameters
-gpgsql-host=${PGSQL_HOST}
-gpgsql-port=${PGSQL_PORT}
-gpgsql-dbname=${PGSQL_DATABASE}
-gpgsql-user=${PGSQL_USERNAME}
-gpgsql-password=${PGSQL_PASSWORD}
-gpgsql-dnssec=${PGSQL_DNSSEC}
+allow-axfr-ips=${PDNS_SLAVE_ADDR}
 
 include-dir=/etc/pdns.d
