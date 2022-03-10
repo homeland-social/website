@@ -298,5 +298,6 @@ NAME_SERVERS = os.getenv(
     'DJANGO_NAME_SERVERS', '1.1.1.1,8.8.8.8').split(',')
 
 if COLLECTSTATIC:
-    STATICFILES_STORAGE = 'compress_staticfiles.storage.CompressStaticFilesStorage'
+    STATICFILES_STORAGE = \
+        'compress_staticfiles.storage.CompressStaticFilesStorage'
     BROTLI_STATIC_COMPRESSION = False
