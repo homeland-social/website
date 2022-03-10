@@ -9,7 +9,7 @@ RUN chmod +x /entrypoint.sh
 
 # https://stackoverflow.com/questions/52894632/cannot-install-pycosat-on-alpine-during-dockerizing
 WORKDIR /app
-RUN apk add --no-cache git postgresql-client postgresql-dev gcc \
+RUN apk add --no-cache git postgresql-client postgresql-dev gcc mailcap \
                        linux-headers musl-dev zlib zlib-dev libffi-dev && \
     echo "#include <unistd.h>" > /usr/include/sys/unistd.h && \
     pip3 install pipenv && \
@@ -21,7 +21,10 @@ ENTRYPOINT [ "/entrypoint.sh" ]
 
 FROM python AS python-build
 
-RUN python3 manage.py collectstatic --noinput
+RUN apk add --no-cache git && \
+    pipenv install --system --dev && \
+    python3 manage.py collectstatic --noinput && \
+    apk del git
 
 
 FROM node:17-alpine AS node
@@ -39,8 +42,10 @@ FROM node AS node-build
 
 RUN npm run build
 
-FROM nginx:1.21-alpine AS static
+FROM python AS final
 
-COPY --from=node-build /app/dist/assets /usr/share/nginx/html/assets
-COPY --from=node-build /app/dist/index.html /usr/share/nginx/html
-COPY --from=python-build /app/api/static /usr/share/nginx/html/static
+ENV UWSGI_STATIC=on
+
+COPY --from=python-build /app/api/static /app/api/static
+COPY --from=node-build /app/dist/assets /app/api/static/assets
+COPY --from=node-build /app/dist/index.html* /app/api/static/

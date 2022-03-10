@@ -20,7 +20,7 @@ services:
     build:
       dockerfile: docker/website/Dockerfile
       context: .
-      target: python
+      target: python-build
     command: api
     networks:
       - private

@@ -4,6 +4,7 @@ CMD=${@:-api}
 
 DJANGO_DB_HOST=${DJANGO_DB_HOST:-db}
 DJANGO_DB_PORT=${DJANGO_DB_PORT:-5432}
+DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS:-localhost}
 
 /wait-for ${DJANGO_DB_HOST}:${DJANGO_DB_PORT}
 
@@ -13,6 +14,12 @@ if [ "${CMD}" == "api" ]; then
 
     if [ ! -z "${DJANGO_DEBUG}" ]; then
         ARGS="${ARGS} --py-autoreload=1"
+    fi
+
+    if [ ! -z "${UWSGI_STATIC}" ]; then
+        ARGS="${ARGS} --static-map /=/app/api/static/ \
+                      --static-index index.html \
+                      --static-gzip-all"
     fi
 
     # NOTE: --enable-proxy-protocol does not seem to work.

@@ -1,3 +1,5 @@
+const CompressionPlugin = require('compression-webpack-plugin');
+
 module.exports = {
   outputDir: 'dist/',
   assetsDir: 'assets/',
@@ -7,5 +9,8 @@ module.exports = {
   },
   transpileDependencies: [
     'vuetify'
-  ]
+  ],
+  configureWebpack: {
+    plugins: [new CompressionPlugin()]
+  }
 }

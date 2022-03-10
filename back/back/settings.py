@@ -26,6 +26,7 @@ def get_from_env_or_file(var_name, default=None):
 
 
 TEST = 'test' in sys.argv
+COLLECTSTATIC = 'collectstatic' in sys.argv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -70,7 +71,6 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'xff.middleware.XForwardedForMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -78,6 +78,9 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+if DEBUG:
+    MIDDLEWARE.insert(2, 'whitenoise.middleware.WhiteNoiseMiddleware')
 
 ROOT_URLCONF = 'back.urls'
 
@@ -293,3 +296,7 @@ SHARED_DOMAINS = os.getenv(
 
 NAME_SERVERS = os.getenv(
     'DJANGO_NAME_SERVERS', '1.1.1.1,8.8.8.8').split(',')
+
+if COLLECTSTATIC:
+    STATICFILES_STORAGE = 'compress_staticfiles.storage.CompressStaticFilesStorage'
+    BROTLI_STATIC_COMPRESSION = False

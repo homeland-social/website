@@ -69,5 +69,9 @@ fixtures:
 	$(MAKE) -C back fixtures
 
 
+.PHONY: final
+final:
+	${DOCKER} build . -f docker/website/Dockerfile --target=final -t website-final
+
 .PHONY: ci
 ci: build shared test lint
