@@ -41,9 +41,13 @@ jobs:
           docker build . -f docker/powerdns/Dockerfile \
             -t ${{secrets.DOCKER_USER}}/website-dns:${{env.tag}} \
             -t ${{secrets.DOCKER_USER}}/website-dns:latest
+          docker build . -f docker/haproxy/Dockerfile \
+            -t ${{secrets.DOCKER_USER}}/website-haproxy:${{env.tag}} \
+            -t ${{secrets.DOCKER_USER}}/website-haproxy:latest
           docker push -a ${{secrets.DOCKER_USER}}/website-certbot
           docker push -a ${{secrets.DOCKER_USER}}/website-final
           docker push -a ${{secrets.DOCKER_USER}}/website-dns
+          docker push -a ${{secrets.DOCKER_USER}}/website-haproxy
 
       - name: Docker Hub Description
         uses: peter-evans/dockerhub-description@v2
