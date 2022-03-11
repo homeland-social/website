@@ -23,6 +23,13 @@ update() {
 
 create() {
     DOMAIN=${1}
+    
+    CERT=/usr/local/etc/haproxy/certificates/${DOMAIN}.pem
+
+    if [ ! -f "${CERT}" ]; then
+        echo -e "new ssl cert ${CERT}" | \
+            socat tcp-connect:${HAPROXY_HOST}:${HAPROXY_PORT} -
+    fi
 
     certbot certonly \
         --non-interactive --agree-tos --email ${CERTBOT_EMAIL} \

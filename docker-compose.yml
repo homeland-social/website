@@ -197,10 +197,14 @@ services:
       - PDNS_LOG_LEVEL=6
 
   website-haproxy:
-    image: haproxytech/haproxy-alpine:2.6
+    image: website/haproxy
+    build:
+      dockerfile: ./docker/haproxy/Dockerfile
+      context: ./
     volumes:
+      - ./docker/haproxy/entrypoint.sh:/entrypoint.sh:ro
       - ./docker/haproxy/haproxy.cfg:/etc/haproxy/haproxy.cfg:ro
-      - ssl-certs:/usr/local/etc/haproxy/certificates:ro
+      - ssl-certs:/usr/local/etc/haproxy/certificates
     networks:
       private:
       shared:
