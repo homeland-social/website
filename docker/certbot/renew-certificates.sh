@@ -34,7 +34,7 @@ create() {
     certbot certonly \
         --non-interactive --agree-tos --email ${CERTBOT_EMAIL} \
         --authenticator certbot-pdns:auth ${CERTBOT_EXTRA_ARGS} \
-        -d ${DOMAIN}
+        -d "*.${DOMAIN}" --cert-name ${DOMAIN}
 
     update ${DOMAIN}
 }
