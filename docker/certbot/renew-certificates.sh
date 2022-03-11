@@ -4,12 +4,11 @@ update() {
     DOMAIN=${1}
     FULLCHAIN=/etc/letsencrypt/live/${DOMAIN}/fullchain.pem
     PRIVKEY=/etc/letsencrypt/live/${DOMAIN}/privkey.pem
+    CERT=/usr/local/etc/haproxy/certificates/${DOMAIN}.pem
 
     if [ -f ${FULLCHAIN} -a -f ${PRIVKEY} ]; then
         cat ${FULLCHAIN} ${PRIVKEY} > /etc/certificates/${DOMAIN}.pem
     fi
-
-    CERT=/usr/local/etc/haproxy/certificates/${DOMAIN}.pem
 
     if [ -f /etc/certificates/${DOMAIN}.pem ]; then
         echo -e "set ssl cert ${CERT} <<\n$(cat /etc/certificates/${DOMAIN}.pem)\n" | \
@@ -23,7 +22,6 @@ update() {
 
 create() {
     DOMAIN=${1}
-    
     CERT=/usr/local/etc/haproxy/certificates/${DOMAIN}.pem
 
     if [ ! -f "${CERT}" ]; then
