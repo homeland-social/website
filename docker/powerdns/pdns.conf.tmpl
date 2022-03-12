@@ -7,9 +7,6 @@ config-dir=/etc/powerdns
 # daemon	Operate as a daemon
 daemon=no
 
-# disable-axfr	Disable zonetransfers but do allow TCP queries
-disable-axfr=yes
-
 disable-syslog=yes
 
 # distributor-threads	Default number of Distributor (backend) threads to start
@@ -32,6 +29,7 @@ loglevel=${PDNS_LOG_LEVEL}
 # master	Act as a master
 master=${PDNS_MASTER}
 slave=${PDNS_SLAVE}
+autosecondary=${PDNS_SLAVE}
 
 # negquery-cache-ttl	Seconds to store packets in the PacketCache
 negquery-cache-ttl=60
@@ -56,6 +54,8 @@ webserver-allow-from=${PDNS_WEBSERVER_ACL}
 api=yes
 api-key=${PDNS_API_KEY}
 
+# disable-axfr	Disable zonetransfers but do allow TCP queries
+disable-axfr=${PDNS_DISABLE_AXFR}
 allow-axfr-ips=${PDNS_SLAVE_ADDR}
 
 include-dir=/etc/pdns.d

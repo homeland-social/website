@@ -11,8 +11,8 @@ networks:
         - subnet: 10.5.0.0/24
 
 volumes:
-  dns-slave-db:
-  ssl-certs:
+  website-sqlite-db:
+  website-ssl-certs:
 
 services:
   website-back:
@@ -168,7 +168,8 @@ services:
       - PDNS_WEBSERVER_PORT=8081
       - PDNS_WEBSERVER_ACL=10.5.0.0/24,127.0.0.1
       - PDNS_API_KEY=FOOBAR
-      - PDNS_SLAVE_ADDR=10.0.5.201
+      - PDNS_DISABLE_AXFR=no
+      - PDNS_SLAVE_ADDR=10.5.0.201
       - PDNS_LOG_LEVEL=6
 
   website-dns-slave:
@@ -186,14 +187,15 @@ services:
       - ./docker/powerdns/pdns.conf.tmpl:/etc/pdns.conf.tmpl:ro
       - ./docker/powerdns/sqlite.conf.tmpl:/etc/pdns.d/sqlite.conf.tmpl:ro
       - ./docker/powerdns/entrypoint.sh:/entrypoint.sh:ro
-      - dns-slave-db:/var/db/pdns/
+      - website-sqlite-db:/var/db/pdns/
     environment:
       - SQLITE_DB=/var/db/pdns/pdns.db
       - PDNS_MASTER=no
       - PDNS_SLAVE=yes
       - PDNS_WEBSERVER=no
-      - PDNS_MASTER_ADDR=10.0.5.200
-      - PDNS_MASTER_NAME=ns1.domain.com
+      - PDNS_MASTER_ADDR=10.5.0.200
+      - PDNS_MASTER_NAME=ns1.shanty.local
+      - PDNS_DISABLE_AXFR=yes
       - PDNS_LOG_LEVEL=6
 
   website-haproxy:
@@ -202,9 +204,9 @@ services:
       dockerfile: ./docker/haproxy/Dockerfile
       context: ./
     volumes:
+      - website-ssl-certs:/usr/local/etc/haproxy/certificates:ro
       - ./docker/haproxy/entrypoint.sh:/entrypoint.sh:ro
       - ./docker/haproxy/haproxy.cfg:/etc/haproxy/haproxy.cfg:ro
-      - ssl-certs:/usr/local/etc/haproxy/certificates
     networks:
       private:
       shared:
@@ -224,7 +226,7 @@ services:
     networks:
       private:
     volumes:
-      - ssl-certs:/etc/certificates
+      - website-ssl-certs:/etc/certificates
       - ./docker/certbot/entrypoint.sh:/entrypoint.sh:ro
       - ./docker/certbot/renew-certificates.sh:/usr/local/bin/renew-certificates.sh:ro
     environment:
@@ -234,6 +236,7 @@ services:
       - PDNS_PORT=8081
       - PDNS_API_KEY=FOOBAR
       - CERTBOT_EMAIL=hostmaster@shanty.local
+      - CERTBOT_DOMAINS=shantysocial.local
       - CERTBOT_SHARED_DOMAINS=shanty.social,shanty.local
       - CERTBOT_HOST=website-pebble
       - CERTBOT_PORT=14000

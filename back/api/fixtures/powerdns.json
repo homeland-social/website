@@ -24,6 +24,18 @@
         }
     },
     {
+        "model": "powerdns.domain",
+        "pk": 3,
+        "fields": {
+            "name": "shantysocial.local",
+            "master": "",
+            "last_check": null,
+            "type": "NATIVE",
+            "notified_serial": null,
+            "account": ""
+        }
+    },
+    {
         "model": "powerdns.record",
         "pk": 1,
         "fields": {
@@ -46,6 +58,21 @@
             "name": "shanty.social",
             "type": "SOA",
             "content": "a.misconfigured.dns.server.invalid hostmaster.shanty.social 0 10800 3600 604800 3600",
+            "ttl": 3600,
+            "prio": 0,
+            "disabled": false,
+            "ordername": null,
+            "auth": true
+        }
+    },
+    {
+        "model": "powerdns.record",
+        "pk": 3,
+        "fields": {
+            "domain": 3,
+            "name": "shantysocial.local",
+            "type": "SOA",
+            "content": "a.misconfigured.dns.server.invalid hostmaster.shantysocial.local 0 10800 3600 604800 3600",
             "ttl": 3600,
             "prio": 0,
             "disabled": false,
