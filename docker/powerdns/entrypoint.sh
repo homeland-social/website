@@ -15,14 +15,9 @@ PDNS_LOG_LEVEL=${PDNS_LOG_LEVEL:-4}
 
 envsubst < ${PDNS_CONF}.tmpl > ${PDNS_CONF}
 
-for TMPL_NAME in ${PDNS_CONF_DIR}/*.tmpl; do
-	CONF_NAME=$(basename -- "${TMPL_NAME}" .tmpl)
-	envsubst < ${TMPL_NAME} > ${PDNS_CONF_DIR}/${CONF_NAME}
-done
-
 if [ ! -z "${SQLITE_DB}" ] && [ ! -f "${SQLITE_DB}" ]; then
+	envsubst < ${PDNS_CONF_DIR}/sqlite.conf.tmpl > ${PDNS_CONF_DIR}/sqlite.conf
 	sqlite3 ${SQLITE_DB} < ${PDNS_SQL_DIR}/schema.sqlite3.sql
-
 	chown -R pdns:pdns $(dirname ${SQLITE_DB})
 
 	if [ "${PDNS_SLAVE}" == "yes" ]; then
@@ -30,6 +25,7 @@ if [ ! -z "${SQLITE_DB}" ] && [ ! -f "${SQLITE_DB}" ]; then
 	fi
 
 elif [ ! -z "${PGSQL_HOST}" ] && [ "${PDNS_SLAVE}}" == "yes" ]; then
+	envsubst < ${PDNS_CONF_DIR}/pgsql.conf.tmpl > ${PDNS_CONF_DIR}/pgsql.conf
 	psql -h ${PGSQL_HOST} -p ${PGSQL_PORT} -U ${PGSQL_USERNAME} -W "${PGSQL_PASSWORD}" ${PGSQL_DATABASE} 'insert into supermasters values ('${PDNS_MASTER_ADDR}', '${PDNS_MASTER_HOST}', 'admin');'
 
 fi

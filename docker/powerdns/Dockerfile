@@ -8,6 +8,8 @@ ENV PDNS_SQL_DIR=/var/lib/pdns
 
 ADD ./docker/powerdns/entrypoint.sh /entrypoint.sh
 ADD ./docker/powerdns/pdns.conf.tmpl /etc/
+ADD ./docker/powerdns/pgsql.conf.tmpl /etc/pdns.d/
+ADD ./docker/powerdns/sqlite.conf.tmpl /etc/pdns.d/
 RUN mkdir -p ${PDNS_CONF_DIR}
 RUN mkdir -p ${PDNS_SQL_DIR}
 
