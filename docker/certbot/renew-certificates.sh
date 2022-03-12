@@ -22,6 +22,7 @@ update() {
 
 create() {
     DOMAIN=${1}
+    PREFIX=${2}
     CERT=/usr/local/etc/haproxy/certificates/${DOMAIN}.pem
 
     if [ ! -f "${CERT}" ]; then
@@ -31,21 +32,32 @@ create() {
 
     certbot certonly \
         --non-interactive --agree-tos --email ${CERTBOT_EMAIL} \
-        --authenticator certbot-pdns:auth ${CERTBOT_EXTRA_ARGS} \
-        -d "*.${DOMAIN}" --cert-name ${DOMAIN}
+        --authenticator certbot-pdns:auth \
+        -d "${PREFIX}.${DOMAIN},${DOMAIN}" \
+        --cert-name ${DOMAIN} ${CERTBOT_EXTRA_ARGS}
 
     update ${DOMAIN}
 }
 
-for DOMAIN in $(echo ${CERTBOT_SHARED_DOMAINS} | sed "s/,/ /g"); do
+renew() {
+    DOMAIN=${1}
+    PREFIX=${2}
+
     if [ -d /etc/letsencrypt/live/${DOMAIN} ]; then
         certbot renew --authenticator certbot-pdns:auth \
-            --cert-name ${DOMAIN} ${CERTBOT_EXTRA_ARGS}
-
-        update ${DOMAIN}
-
+                      --cert-name ${DOMAIN} ${CERTBOT_EXTRA_ARGS}
     else
-        create ${DOMAIN}
+        create ${DOMAIN} "${PREFIX}"
 
     fi
+
+    update ${DOMAIN}
+}
+
+for DOMAIN in $(echo ${CERTBOT_DOMAINS} | sed "s/,/ /g"); do
+    renew ${DOMAIN} www
+done
+
+for DOMAIN in $(echo ${CERTBOT_SHARED_DOMAINS} | sed "s/,/ /g"); do
+    renew ${DOMAIN} '*'
 done
