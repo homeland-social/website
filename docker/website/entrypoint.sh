@@ -17,15 +17,16 @@ if [ "${CMD}" == "api" ]; then
     fi
 
     if [ ! -z "${UWSGI_STATIC}" ]; then
-        ARGS="${ARGS} --static-map /=/app/api/static/ \
-                      --static-index index.html \
+        ARGS="${ARGS} --static-map /static=/app/api/static/ \
+                      --static-map /assets=/app/api/assets/ \
+                      --static-map /=index.html \
                       --static-gzip-all"
     fi
 
     # NOTE: --enable-proxy-protocol does not seem to work.
     uwsgi --enable-threads --http-socket=${DJANGO_HOST}:${DJANGO_PORT} \
-        --uid=65534 --gid=65534 --manage-script-name --gevent 1000 --http-websockets \
-        --mount /=back.wsgi:application ${ARGS}
+        --uid=65534 --gid=65534 --manage-script-name --gevent 1000 \
+        --http-websockets --mount /=back.wsgi:application ${ARGS}
 
 elif [ "${CMD}" == "beat" ]; then
     celery -A back beat -l info
