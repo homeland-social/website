@@ -3,7 +3,7 @@ FROM python:3-alpine3.15
 ARG CERTBOT_VERSION=1.24.0
 ENV CERTBOT_VERSION=${CERTBOT_VERSION}
 
-ENV CERTBOT_PDNS_CONF=/etc/letsencrypt/certbot-pdns.json
+ENV CERTBOT_PDNS_CONF=/etc/pdns-credentials.ini
 
 ADD ./docker/certbot/entrypoint.sh /entrypoint.sh
 ADD ./docker/certbot/renew-certificates.sh /usr/local/bin/
