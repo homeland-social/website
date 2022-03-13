@@ -1,11 +1,11 @@
 #!/bin/sh -x
 
 if [ ! -z "${PGSQL_PASSWORD_FILE}" ]; then
-	PGSQL_PASSWORD=$(cat ${PGSQL_PASSWORD_FILE})
+	export PGSQL_PASSWORD=$(cat ${PGSQL_PASSWORD_FILE})
 fi
 
 if [ ! -z "${PDNS_API_KEY_FILE}" ]; then
-	PDNS_API_KEY=$(cat ${PDNS_API_KEY_FILE})
+	export PDNS_API_KEY=$(cat ${PDNS_API_KEY_FILE})
 fi
 
 PDNS_MASTER=${PDNS_MASTER:-yes}
@@ -21,6 +21,9 @@ elif [ ! -z "${PGSQL_HOST}" ]; then
 	envsubst < ${PDNS_CONF_DIR}/pgsql.conf.tmpl > ${PDNS_CONF_DIR}/pgsql.conf
 fi
 
+unset -v PGSQL_PASSWORD
+unset -v PDNS_API_KEY
+
 if [ ! -z "${SQLITE_DB}" ] && [ ! -f "${SQLITE_DB}" ]; then
 	sqlite3 ${SQLITE_DB} < ${PDNS_SQL_DIR}/schema.sqlite3.sql
 	chown -R pdns:pdns $(dirname ${SQLITE_DB})
@@ -33,9 +36,6 @@ elif [ ! -z "${PGSQL_HOST}" ] && [ "${PDNS_SLAVE}" == "yes" ]; then
 	psql -h ${PGSQL_HOST} -p ${PGSQL_PORT} -U ${PGSQL_USERNAME} -W "${PGSQL_PASSWORD}" ${PGSQL_DATABASE} 'insert into supermasters values ('${PDNS_MASTER_ADDR}', '${PDNS_MASTER_HOST}', 'admin');'
 
 fi
-
-unset -v PGSQL_PASSWORD
-unset -v PDNS_API_KEY
 
 trap "pdns_control quit" SIGINT SIGTERM
 trap ":" SIGHUP
