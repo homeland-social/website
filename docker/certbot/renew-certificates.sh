@@ -37,8 +37,6 @@ create() {
         -d "${PREFIX}.${DOMAIN},${DOMAIN}" \
         --cert-name ${DOMAIN} ${CERTBOT_EXTRA_ARGS}
 
-#        --authenticator certbot-pdns:auth \
-
     update ${DOMAIN}
 }
 
@@ -52,7 +50,6 @@ renew() {
             --certbot-dns-powerdns:dns-powerdns-credentials ${CERTBOT_PDNS_CONF} \
             --cert-name ${DOMAIN} ${CERTBOT_EXTRA_ARGS}
 
-#        --authenticator certbot-pdns:auth \
     else
         create ${DOMAIN} "${PREFIX}"
 
