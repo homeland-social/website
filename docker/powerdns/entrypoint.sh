@@ -18,6 +18,7 @@ envsubst < ${PDNS_CONF}.tmpl > ${PDNS_CONF}
 if [ ! -z "${SQLITE_DB}" ]; then
 	envsubst < ${PDNS_CONF_DIR}/sqlite.conf.tmpl > ${PDNS_CONF_DIR}/sqlite.conf
 elif [ ! -z "${PGSQL_HOST}" ]; then
+	/wait-for ${PGSQL_HOST}:${PGSQL_PORT}
 	envsubst < ${PDNS_CONF_DIR}/pgsql.conf.tmpl > ${PDNS_CONF_DIR}/pgsql.conf
 fi
 

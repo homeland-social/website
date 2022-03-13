@@ -18,6 +18,7 @@ if [ "${CMD}" == "api" ]; then
 
     if [ ! -z "${UWSGI_STATIC}" ]; then
         ARGS="${ARGS} --static-map /=/app/static/ \
+                      --static-index index.html \
                       --static-gzip-all"
     fi
 

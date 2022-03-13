@@ -2,8 +2,8 @@
 
 trap exit TERM;
 
-/wait-for ${PDNS_HOST}:${PDNS_PORT}
-/wait-for ${HAPROXY_HOST}:${HAPROXY_PORT}
+/wait-for -t 0 ${PDNS_HOST}:${PDNS_PORT}
+/wait-for -t 0 ${HAPROXY_HOST}:${HAPROXY_PORT}
 
 if [ ! -z "${CERTBOT_HOST}" ] && [ ! -z "${CERTBOT_PORT}" ]; then
     CERTBOT_EXTRA_ARGS="--server https://${CERTBOT_HOST}:${CERTBOT_PORT}/dir ${CERTBOT_EXTRA_ARGS}"
