@@ -46,6 +46,6 @@ FROM python AS final
 
 ENV UWSGI_STATIC=on
 
-COPY --from=python-build /app/api/static /app/api/static
-COPY --from=node-build /app/dist/assets /app/api/static/assets
-COPY --from=node-build /app/dist/index.html* /app/api/static/
+COPY --from=python-build /app/api/static /app/static/static
+COPY --from=node-build /app/dist/assets /app/static/assets
+COPY --from=node-build /app/dist/index.html* /app/static/
