@@ -55,7 +55,7 @@ api=yes
 api-key=${PDNS_API_KEY}
 
 # disable-axfr	Disable zonetransfers but do allow TCP queries
-disable-axfr=${PDNS_DISABLE_AXFR}
-allow-axfr-ips=${PDNS_SLAVE_ADDR}
+disable-axfr=${PDNS_AXFR_DISABLE}
+allow-axfr-ips=${PDNS_AXFR_ACL}
 
 include-dir=/etc/pdns.d

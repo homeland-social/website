@@ -1,48 +1,108 @@
 [
     {
         "model": "powerdns.domain",
-        "pk": 1,
-        "fields": {
-            "name": "shanty.local",
-            "master": "",
-            "last_check": null,
-            "type": "NATIVE",
-            "notified_serial": null,
-            "account": ""
-        }
-    },
-    {
-        "model": "powerdns.domain",
-        "pk": 2,
-        "fields": {
-            "name": "shanty.social",
-            "master": "",
-            "last_check": null,
-            "type": "NATIVE",
-            "notified_serial": null,
-            "account": ""
-        }
-    },
-    {
-        "model": "powerdns.domain",
-        "pk": 3,
+        "pk": 4,
         "fields": {
             "name": "shantysocial.local",
             "master": "",
             "last_check": null,
             "type": "NATIVE",
-            "notified_serial": null,
+            "notified_serial": 3,
+            "account": ""
+        }
+    },
+    {
+        "model": "powerdns.domain",
+        "pk": 5,
+        "fields": {
+            "name": "shanty.social",
+            "master": "",
+            "last_check": null,
+            "type": "NATIVE",
+            "notified_serial": 14,
+            "account": ""
+        }
+    },
+    {
+        "model": "powerdns.domain",
+        "pk": 6,
+        "fields": {
+            "name": "shanty.local",
+            "master": "",
+            "last_check": null,
+            "type": "NATIVE",
+            "notified_serial": 23,
             "account": ""
         }
     },
     {
         "model": "powerdns.record",
-        "pk": 1,
+        "pk": 88,
         "fields": {
-            "domain": 1,
-            "name": "shanty.local",
+            "domain": 4,
+            "name": "shantysocial.local",
             "type": "SOA",
-            "content": "a.misconfigured.dns.server.invalid hostmaster.shanty.local 0 10800 3600 604800 3600",
+            "content": "ns1.shanty.local hostmaster.shantysocial.local 3 10800 3600 604800 3600",
+            "ttl": 3600,
+            "prio": 0,
+            "disabled": false,
+            "ordername": "",
+            "auth": true
+        }
+    },
+    {
+        "model": "powerdns.record",
+        "pk": 109,
+        "fields": {
+            "domain": 5,
+            "name": "shanty.social",
+            "type": "SOA",
+            "content": "ns1.shanty.local hostmaster.shanty.social 14 10800 3600 604800 3600",
+            "ttl": 3600,
+            "prio": 0,
+            "disabled": false,
+            "ordername": "",
+            "auth": true
+        }
+    },
+    {
+        "model": "powerdns.record",
+        "pk": 111,
+        "fields": {
+            "domain": 6,
+            "name": "shanty.local",
+            "type": "NS",
+            "content": "ns1.shanty.local",
+            "ttl": 3600,
+            "prio": 0,
+            "disabled": false,
+            "ordername": "",
+            "auth": true
+        }
+    },
+    {
+        "model": "powerdns.record",
+        "pk": 112,
+        "fields": {
+            "domain": 6,
+            "name": "shanty.local",
+            "type": "NS",
+            "content": "ns2.shanty.local",
+            "ttl": 3600,
+            "prio": 0,
+            "disabled": false,
+            "ordername": "",
+            "auth": true
+        }
+    },
+    {
+        "model": "powerdns.record",
+        "pk": 114,
+        "fields": {
+            "domain": 5,
+            "name": "shanty.social",
+            "type": "NS",
+            "content": "ns1.shanty.local",
             "ttl": 3600,
             "prio": 0,
             "disabled": false,
@@ -52,12 +112,12 @@
     },
     {
         "model": "powerdns.record",
-        "pk": 2,
+        "pk": 115,
         "fields": {
-            "domain": 2,
+            "domain": 5,
             "name": "shanty.social",
-            "type": "SOA",
-            "content": "a.misconfigured.dns.server.invalid hostmaster.shanty.social 0 10800 3600 604800 3600",
+            "type": "NS",
+            "content": "ns2.shanty.local",
             "ttl": 3600,
             "prio": 0,
             "disabled": false,
@@ -67,17 +127,78 @@
     },
     {
         "model": "powerdns.record",
-        "pk": 3,
+        "pk": 117,
         "fields": {
-            "domain": 3,
+            "domain": 4,
             "name": "shantysocial.local",
-            "type": "SOA",
-            "content": "a.misconfigured.dns.server.invalid hostmaster.shantysocial.local 0 10800 3600 604800 3600",
+            "type": "NS",
+            "content": "ns1.shanty.local",
             "ttl": 3600,
             "prio": 0,
             "disabled": false,
             "ordername": null,
+            "auth": true
+        }
+    },
+    {
+        "model": "powerdns.record",
+        "pk": 118,
+        "fields": {
+            "domain": 4,
+            "name": "shantysocial.local",
+            "type": "NS",
+            "content": "ns2.shanty.local",
+            "ttl": 3600,
+            "prio": 0,
+            "disabled": false,
+            "ordername": null,
+            "auth": true
+        }
+    },
+    {
+        "model": "powerdns.record",
+        "pk": 125,
+        "fields": {
+            "domain": 6,
+            "name": "ns1.shanty.local",
+            "type": "A",
+            "content": "10.5.0.200",
+            "ttl": 3600,
+            "prio": null,
+            "disabled": false,
+            "ordername": "ns1",
+            "auth": true
+        }
+    },
+    {
+        "model": "powerdns.record",
+        "pk": 126,
+        "fields": {
+            "domain": 6,
+            "name": "ns2.shanty.local",
+            "type": "A",
+            "content": "10.5.0.201",
+            "ttl": 3600,
+            "prio": null,
+            "disabled": false,
+            "ordername": "ns2",
+            "auth": true
+        }
+    },
+    {
+        "model": "powerdns.record",
+        "pk": 133,
+        "fields": {
+            "domain": 6,
+            "name": "shanty.local",
+            "type": "SOA",
+            "content": "ns1.shanty.local hostmaster.shanty.local 23 10800 3600 604800 3600",
+            "ttl": 3600,
+            "prio": 0,
+            "disabled": false,
+            "ordername": "",
             "auth": true
         }
     }
 ]
+    

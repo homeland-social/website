@@ -168,8 +168,8 @@ services:
       - PDNS_WEBSERVER_PORT=8081
       - PDNS_WEBSERVER_ACL=10.5.0.0/24,127.0.0.1
       - PDNS_API_KEY=FOOBAR
-      - PDNS_DISABLE_AXFR=no
-      - PDNS_SLAVE_ADDR=10.5.0.201
+      - PDNS_AXFR_DISABLE=no
+      - PDNS_AXFR_ACL=10.5.0.0/24
       - PDNS_LOG_LEVEL=6
 
   website-dns-slave:
@@ -192,10 +192,13 @@ services:
       - SQLITE_DB=/var/db/pdns/pdns.db
       - PDNS_MASTER=no
       - PDNS_SLAVE=yes
-      - PDNS_WEBSERVER=no
+      - PDNS_WEBSERVER=yes
+      - PDNS_WEBSERVER_HOST=0.0.0.0
+      - PDNS_WEBSERVER_ACL=10.5.0.0/24,127.0.0.1
+      - PDNS_API_KEY=FOOBAR
       - PDNS_MASTER_ADDR=10.5.0.200
       - PDNS_MASTER_NAME=ns1.shanty.local
-      - PDNS_DISABLE_AXFR=yes
+      - PDNS_AXFR_DISABLE=yes
       - PDNS_LOG_LEVEL=6
 
   website-haproxy:
