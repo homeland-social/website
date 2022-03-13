@@ -42,7 +42,7 @@ RUN apk add --no-cache --repository=http://dl-cdn.alpinelinux.org/alpine/edge/te
     && python certbot-${CERTBOT_VERSION}/tools/pip_install.py --no-cache-dir \
             --editable certbot-${CERTBOT_VERSION}/acme \
             --editable certbot-${CERTBOT_VERSION}/certbot \
-    && pip3 install certbot-pdns \
+    && pip3 install certbot-pdns certbot-dns-powerdns \
     && apk del .build-deps
 
 ENTRYPOINT [ "/entrypoint.sh" ]

@@ -32,9 +32,12 @@ create() {
 
     certbot certonly \
         --non-interactive --agree-tos --email ${CERTBOT_EMAIL} \
-        --authenticator certbot-pdns:auth \
+        --authenticator certbot-dns-powerdns:dns-powerdns \
+        --certbot-dns-powerdns:dns-powerdns-credentials ~/pdns-credentials.ini \
         -d "${PREFIX}.${DOMAIN},${DOMAIN}" \
         --cert-name ${DOMAIN} ${CERTBOT_EXTRA_ARGS}
+
+#        --authenticator certbot-pdns:auth \
 
     update ${DOMAIN}
 }
@@ -44,8 +47,12 @@ renew() {
     PREFIX=${2}
 
     if [ -d /etc/letsencrypt/live/${DOMAIN} ]; then
-        certbot renew --authenticator certbot-pdns:auth \
-                      --cert-name ${DOMAIN} ${CERTBOT_EXTRA_ARGS}
+        certbot renew \
+            --authenticator certbot-dns-powerdns:dns-powerdns \
+            --certbot-dns-powerdns:dns-powerdns-credentials ~/pdns-credentials.ini \
+            --cert-name ${DOMAIN} ${CERTBOT_EXTRA_ARGS}
+
+#        --authenticator certbot-pdns:auth \
     else
         create ${DOMAIN} "${PREFIX}"
 

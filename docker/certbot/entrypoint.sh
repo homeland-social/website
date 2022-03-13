@@ -16,13 +16,18 @@ if [ ! -z "${PDNS_API_KEY_FILE}" ]; then
     PDNS_API_KEY=$(cat ${PDNS_API_KEY_FILE})
 fi
 
-cat << EOF > ${CERTBOT_PDNS_CONF}
-{
-  "api-key": "${PDNS_API_KEY}",
-  "base-url": "http://${PDNS_HOST}:${PDNS_PORT}/api/v1",
-  "axfr-time": 5,
-  "verify-cert": "False"
-}
+#cat << EOF > ${CERTBOT_PDNS_CONF}
+# {
+#  "api-key": "${PDNS_API_KEY}",
+#  "base-url": "http://${PDNS_HOST}:${PDNS_PORT}/api/v1",
+#  "axfr-time": 5,
+#  "verify-cert": "False"
+#}
+#EOF
+
+cat << EOF > ~/pdns-credentials.ini
+certbot_dns_powerdns:dns_powerdns_api_url = http://${PDNS_HOST}:${PDNS_PORT}
+certbot_dns_powerdns:dns_powerdns_api_key = "${PDNS_API_KEY}
 EOF
 
 unset -v PDNS_API_KEY
