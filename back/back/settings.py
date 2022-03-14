@@ -176,6 +176,7 @@ STATIC_ROOT = Path(BASE_DIR).joinpath('api', 'static')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'api.User'
+SESSION_ENGINE='django.contrib.sessions.backends.cached_db'
 
 CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'redis://redis:6379/0')
 CELERY_RESULT_BACKEND = CELERY_BROKER_URL
@@ -218,7 +219,8 @@ FIXTURE_DIRS = [
 ]
 
 DRF_RECAPTCHA_TESTING = TEST
-DRF_RECAPTCHA_SECRET_KEY = os.getenv('DJANGO_RECAPTCHA_SECRET_KEY', 'unknown')
+DRF_RECAPTCHA_SECRET_KEY = get_from_env_or_file(
+    'DJANGO_RECAPTCHA_SECRET_KEY', None)
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 XFF_TRUSTED_PROXY_DEPTH = 1
