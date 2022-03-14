@@ -178,9 +178,10 @@ STATIC_ROOT = Path(BASE_DIR).joinpath('api', 'static')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'api.User'
-SESSION_ENGINE='django.contrib.sessions.backends.cached_db'
+SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 
-CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', f'redis://{REDIS_HOST}:{REDIS_PORT}/0')
+CELERY_BROKER_URL = os.environ.get(
+    'CELERY_BROKER_URL', f'redis://{REDIS_HOST}:{REDIS_PORT}/0')
 CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 CELERY_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
