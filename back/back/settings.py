@@ -112,7 +112,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'HOST': os.environ.get('DJANGO_DB_HOST', 'db'),
-        'NAME': os.environ.get('DJANGO_DB_NAME', 'console'),
+        'NAME': os.environ.get('DJANGO_DB_NAME', 'shanty'),
         'USER': os.environ.get('DJANGO_DB_USER', 'user'),
         'PASSWORD': DJANGO_DB_PASSWORD,
     }
