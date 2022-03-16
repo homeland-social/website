@@ -233,8 +233,7 @@ services:
       - ./docker/certbot/entrypoint.sh:/entrypoint.sh:ro
       - ./docker/certbot/renew-certificates.sh:/usr/local/bin/renew-certificates.sh:ro
     environment:
-      - HAPROXY_HOST=website-haproxy
-      - HAPROXY_PORT=9999
+      - HAPROXY_HOSTS=website-haproxy:9999
       - PDNS_HOST=website-dns-master
       - PDNS_PORT=8081
       - PDNS_API_KEY=FOOBAR

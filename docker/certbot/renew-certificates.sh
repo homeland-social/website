@@ -11,12 +11,11 @@ update() {
     fi
 
     if [ -f /etc/certificates/${DOMAIN}.pem ]; then
-        echo -e "set ssl cert ${CERT} <<\n$(cat /etc/certificates/${DOMAIN}.pem)\n" | \
-            socat tcp-connect:${HAPROXY_HOST}:${HAPROXY_PORT} -
-        echo "commit ssl cert ${CERT}" | \
-            socat tcp-connect:${HAPROXY_HOST}:${HAPROXY_PORT} -
-        echo "show ssl cert ${CERT}" | \
-            socat tcp-connect:${HAPROXY_HOST}:${HAPROXY_PORT} -
+        for HAPROXY in $(echo ${HAPROXY_HOSTS} | sed "s/,/ /g"); do
+            echo -e "set ssl cert ${CERT} <<\n$(cat /etc/certificates/${DOMAIN}.pem)\n" | socat tcp-connect:${HAPROXY} -
+            echo "commit ssl cert ${CERT}" | socat tcp-connect:${HAPROXY} -
+            echo "show ssl cert ${CERT}" | socat tcp-connect:${HAPROXY} -
+        done
     fi
 }
 
@@ -26,8 +25,9 @@ create() {
     CERT=/usr/local/etc/haproxy/certificates/${DOMAIN}.pem
 
     if [ ! -f "${CERT}" ]; then
-        echo -e "new ssl cert ${CERT}" | \
-            socat tcp-connect:${HAPROXY_HOST}:${HAPROXY_PORT} -
+        for HAPROXY in $(echo ${HAPROXY_HOSTS} | sed "s/,/ /g"); do
+            echo -e "new ssl cert ${CERT}" | socat tcp-connect:${HAPROXY} -
+        done
     fi
 
     certbot certonly \
