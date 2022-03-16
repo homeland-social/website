@@ -238,9 +238,9 @@ AUTHLIB_JWK_PUB = os.getenv('AUTHLIB_JWK_PUB', '/run/secrets/jwk.pub')
 AUTHLIB_OPENIDC_METADATA = {
     "issuer": "http://shanty.social/",
     "authorization_endpoint": "http://www.shanty.local:8000/api/oauth2/"
-                            "authorize/",
+                              "authorize/",
     "device_authorization_endpoint": "http://www.shanty.local:8000/api/oauth2/"
-                                    "device/code",
+                                     "device/code",
     "token_endpoint": "http://www.shanty.local:8000/api/oauth2//token",
     "userinfo_endpoint": "http://www.shanty.local:8000/api/users/whoami/",
     "revocation_endpoint": "http://www.shanty.local:8000/api/oauth2/revoke",
@@ -308,53 +308,53 @@ if COLLECTSTATIC:
     BROTLI_STATIC_COMPRESSION = False
 
 LOGGING = {
-	'version': 1,
-	'disable_existing_loggers': False,
-	'filters': {
-		'require_debug_false': {
-			'()': 'django.utils.log.RequireDebugFalse',
-		},
-		'require_debug_true': {
-			'()': 'django.utils.log.RequireDebugTrue',
-		},
-	},
-	'formatters': {
-		'django.server': {
-			'()': 'django.utils.log.ServerFormatter',
-			'format': '[%(server_time)s] %(message)s',
-		}
-	},
-	'handlers': {
-		'console': {
-			'level': 'INFO',
-			'filters': ['require_debug_true'],
-			'class': 'logging.StreamHandler',
-		},
-		'console_debug_false': {
-			'level': 'ERROR',
-			'filters': ['require_debug_false'],
-			'class': 'logging.StreamHandler',
-		},
-		'django.server': {
-			'level': 'INFO',
-			'class': 'logging.StreamHandler',
-			'formatter': 'django.server',
-		},
-		'mail_admins': {
-			'level': 'ERROR',
-			'filters': ['require_debug_false'],
-			'class': 'django.utils.log.AdminEmailHandler'
-		}
-	},
-	'loggers': {
-		'django': {
-			'handlers': ['console', 'console_debug_false', 'mail_admins'],
-			'level': 'INFO',
-		},
-		'django.server': {
-			'handlers': ['django.server'],
-			'level': 'INFO',
-			'propagate': False,
-		}
-	}
+    'version': 1,
+    'disable_existing_loggers': False,
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
+        },
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
+    },
+    'formatters': {
+        'django.server': {
+            '()': 'django.utils.log.ServerFormatter',
+            'format': '[%(server_time)s] %(message)s',
+        }
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'filters': ['require_debug_true'],
+            'class': 'logging.StreamHandler',
+        },
+        'console_debug_false': {
+            'level': 'ERROR',
+            'filters': ['require_debug_false'],
+            'class': 'logging.StreamHandler',
+        },
+        'django.server': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'django.server',
+        },
+        'mail_admins': {
+            'level': 'ERROR',
+            'filters': ['require_debug_false'],
+            'class': 'django.utils.log.AdminEmailHandler'
+        }
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'console_debug_false', 'mail_admins'],
+            'level': 'INFO',
+        },
+        'django.server': {
+            'handlers': ['django.server'],
+            'level': 'INFO',
+            'propagate': False,
+        }
+    }
 }
