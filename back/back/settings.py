@@ -118,8 +118,8 @@ DATABASES = {
     }
 }
 
-REDIS_HOST = os.getenv('REDIS_HOST', 'website-redis')
-REDIS_PORT = int(os.getenv('REDIS_PORT', '6379'))
+REDIS_HOST = os.getenv('DJANGO_REDIS_HOST', 'website-redis')
+REDIS_PORT = int(os.getenv('DJANGO_REDIS_PORT', '6379'))
 
 CACHES = {
     'default': {
