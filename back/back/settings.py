@@ -236,64 +236,64 @@ AUTHLIB_OAUTH2_PROVIDER = {
 AUTHLIB_JWK = os.getenv('AUTHLIB_JWK', '/run/secrets/jwk')
 AUTHLIB_JWK_PUB = os.getenv('AUTHLIB_JWK_PUB', '/run/secrets/jwk.pub')
 AUTHLIB_OPENIDC_METADATA = {
- "issuer": "http://shanty.social/",
- "authorization_endpoint": "http://www.shanty.local:8000/api/oauth2/"
-                           "authorize/",
- "device_authorization_endpoint": "http://www.shanty.local:8000/api/oauth2/"
-                                  "device/code",
- "token_endpoint": "http://www.shanty.local:8000/api/oauth2//token",
- "userinfo_endpoint": "http://www.shanty.local:8000/api/users/whoami/",
- "revocation_endpoint": "http://www.shanty.local:8000/api/oauth2/revoke",
- "jwks_uri": "http://www.shanty.local:8000/api/oauth2/jwks/",
- "response_types_supported": [
-  "code",
-  "token",
-  "id_token",
-  "code token",
-  "code id_token",
-  "token id_token",
-  "code token id_token",
-  "none"
- ],
- "subject_types_supported": [
-  "public"
- ],
- "id_token_signing_alg_values_supported": [
-  "RS256"
- ],
- "scopes_supported": [
-  "openid",
-  "email",
-  "profile"
- ],
- "token_endpoint_auth_methods_supported": [
-  "client_secret_post",
-  "client_secret_basic"
- ],
- "claims_supported": [
-  "aud",
-  "email",
-  "email_verified",
-  "exp",
-  "family_name",
-  "given_name",
-  "iat",
-  "iss",
-  "locale",
-  "name",
-  "picture",
-  "sub"
- ],
- "code_challenge_methods_supported": [
-  "plain",
-  "S256"
- ],
- "grant_types_supported": [
-  "authorization_code",
-  "refresh_token",
-  "urn:ietf:params:oauth:grant-type:device_code",
-  "urn:ietf:params:oauth:grant-type:jwt-bearer"
- ]
+    "issuer": "http://shanty.social/",
+    "authorization_endpoint": "http://www.shanty.local:8000/api/oauth2/"
+                            "authorize/",
+    "device_authorization_endpoint": "http://www.shanty.local:8000/api/oauth2/"
+                                    "device/code",
+    "token_endpoint": "http://www.shanty.local:8000/api/oauth2//token",
+    "userinfo_endpoint": "http://www.shanty.local:8000/api/users/whoami/",
+    "revocation_endpoint": "http://www.shanty.local:8000/api/oauth2/revoke",
+    "jwks_uri": "http://www.shanty.local:8000/api/oauth2/jwks/",
+    "response_types_supported": [
+        "code",
+        "token",
+        "id_token",
+        "code token",
+        "code id_token",
+        "token id_token",
+        "code token id_token",
+        "none"
+    ],
+    "subject_types_supported": [
+        "public"
+    ],
+    "id_token_signing_alg_values_supported": [
+        "RS256"
+    ],
+    "scopes_supported": [
+        "openid",
+        "email",
+        "profile"
+    ],
+    "token_endpoint_auth_methods_supported": [
+        "client_secret_post",
+        "client_secret_basic"
+    ],
+    "claims_supported": [
+        "aud",
+        "email",
+        "email_verified",
+        "exp",
+        "family_name",
+        "given_name",
+        "iat",
+        "iss",
+        "locale",
+        "name",
+        "picture",
+        "sub"
+    ],
+    "code_challenge_methods_supported": [
+        "plain",
+        "S256"
+    ],
+    "grant_types_supported": [
+        "authorization_code",
+        "refresh_token",
+        "urn:ietf:params:oauth:grant-type:device_code",
+        "urn:ietf:params:oauth:grant-type:jwt-bearer"
+    ]
 }
 
 SHARED_DOMAINS = os.getenv(
@@ -306,3 +306,55 @@ if COLLECTSTATIC:
     STATICFILES_STORAGE = \
         'compress_staticfiles.storage.CompressStaticFilesStorage'
     BROTLI_STATIC_COMPRESSION = False
+
+LOGGING = {
+	'version': 1,
+	'disable_existing_loggers': False,
+	'filters': {
+		'require_debug_false': {
+			'()': 'django.utils.log.RequireDebugFalse',
+		},
+		'require_debug_true': {
+			'()': 'django.utils.log.RequireDebugTrue',
+		},
+	},
+	'formatters': {
+		'django.server': {
+			'()': 'django.utils.log.ServerFormatter',
+			'format': '[%(server_time)s] %(message)s',
+		}
+	},
+	'handlers': {
+		'console': {
+			'level': 'INFO',
+			'filters': ['require_debug_true'],
+			'class': 'logging.StreamHandler',
+		},
+		'console_debug_false': {
+			'level': 'ERROR',
+			'filters': ['require_debug_false'],
+			'class': 'logging.StreamHandler',
+		},
+		'django.server': {
+			'level': 'INFO',
+			'class': 'logging.StreamHandler',
+			'formatter': 'django.server',
+		},
+		'mail_admins': {
+			'level': 'ERROR',
+			'filters': ['require_debug_false'],
+			'class': 'django.utils.log.AdminEmailHandler'
+		}
+	},
+	'loggers': {
+		'django': {
+			'handlers': ['console', 'console_debug_false', 'mail_admins'],
+			'level': 'INFO',
+		},
+		'django.server': {
+			'handlers': ['django.server'],
+			'level': 'INFO',
+			'propagate': False,
+		}
+	}
+}
