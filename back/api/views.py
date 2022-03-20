@@ -162,30 +162,6 @@ class SSHKeyViewSet(ModelViewSet):
         serializer = self.serializer_class(key)
         return Response(serializer.data)
 
-    @action(detail=False, methods=['POST'], url_path=r'(?P<name>[^/.]+)/verify', permission_classes=[AllowAny])
-    def verify(self, request, name=None):
-        try:
-            key_data = request.data['key']
-            key_type = request.data['type']
-
-        except KeyError as e:
-            return Response(
-                {e.args[0]: 'Is required'}, status.HTTP_400_BAD_REQUEST,
-                content_type='application/json')
-
-        key = get_object_or_404(SSHKey, name=name)
-        valid = hmac.compare_digest(
-            key.key, key_data) and key.type == key_type
-
-        if not valid:
-            return Response({'key': 'Invalid'}, status.HTTP_400_BAD_REQUEST,
-                            content_type='application/json')
-
-        else:
-            serializer = self.serializer_class(key)
-            return Response(serializer.data, status.HTTP_200_OK,
-                            content_type='application/json')
-
 
 class HostnameViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated]
@@ -198,17 +174,6 @@ class HostnameViewSet(ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
-
-    @action(detail=False, methods=['POST'])
-    def check(self, request):
-        name = request.data.get('name')
-        if not name:
-            return Response({'name': 'is required'},
-                            status=status.HTTP_400_BAD_REQUEST)
-
-        host = get_object_or_404(Hostname, name=name)        
-        serializer = self.serializer_class(host)
-        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['GET'])
     def shared(self, request):
@@ -257,10 +222,59 @@ class ConsoleViewSet(ModelViewSet):
     serializer_class = ConsoleSerializer
     permission_classes = [IsAuthenticated]
     queryset = Console.objects.all()
-    lookup_field = 'uid'
+    lookup_field = 'uuid'
 
     def get_queryset(self):
         return self.queryset.filter(user=self.request.user)
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+    @action(detail=True, methods=['POST'], permission_classes=[AllowAny])
+    def verify_key(self, request, uuid=None):
+        try:
+            key_data = request.data['key']
+            key_type = request.data['type']
+
+        except KeyError as e:
+            return Response(
+                {e.args[0]: 'Is required'}, status.HTTP_400_BAD_REQUEST,
+                content_type='application/json')
+
+        valid, console = False, get_object_or_404(Console, uuid=uuid)
+        for sshkey in console.user.sshkeys.all():
+            if hmac.compare_digest(sshkey.key, key_data) and \
+               sshkey.type == key_type:
+                valid = True
+                break
+
+        if not valid:
+            return Response({'key': 'Invalid'}, status.HTTP_400_BAD_REQUEST,
+                            content_type='application/json')
+
+        else:
+            serializer = SSHKeySerializer(sshkey)
+            return Response(serializer.data, status.HTTP_200_OK,
+                            content_type='application/json')
+
+    @action(detail=True, methods=['POST'], permission_classes=[AllowAny])
+    def verify_host(self, request, uuid=None):
+        try:
+            domain = request.data['domain']
+
+        except KeyError as e:
+            return Response(
+                {e.args[0]: 'Is required'}, status.HTTP_400_BAD_REQUEST,
+                content_type='application/json')
+
+        console = get_object_or_404(Console, uuid=uuid)
+        try:
+            host = console.user.hosts.get(name=domain)
+
+        except Hostname.DoesNotExist:
+            return Response({'domain': 'Invalid'}, status.HTTP_400_BAD_REQUEST,
+                            content_type='application/json')
+
+        else:
+            serializer = HostnameSerializer(host)
+            return Response(serializer.data, status=status.HTTP_200_OK)

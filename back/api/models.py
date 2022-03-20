@@ -151,7 +151,7 @@ class User(HashidsModelMixin, AbstractUser):
 
 
 class SSHKey(HashidsModelMixin, models.Model):
-    user = models.ForeignKey(User, db_index=True,
+    user = models.ForeignKey(User, db_index=True, related_name='sshkeys',
                              on_delete=models.CASCADE)
     name = models.UUIDField(unique=True, default=uuid4)
     key = models.TextField(max_length=2000)
@@ -163,7 +163,7 @@ class SSHKey(HashidsModelMixin, models.Model):
 
 
 class Hostname(HashidsModelMixin, models.Model):
-    user = models.ForeignKey(User, db_index=True,
+    user = models.ForeignKey(User, db_index=True, related_name='hosts',
                              on_delete=models.CASCADE)
     name = models.CharField(max_length=128, unique=True)
     addresses = ArrayField(
