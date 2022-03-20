@@ -1,0 +1,13 @@
+[
+    {
+        "model": "api.console",
+        "pk": "0ac99280-5233-47d1-a43b-b02379e832d0",
+        "fields": {
+            "user": 1,
+            "token": "d8eda933-bb3a-4029-9e65-47b16835fe4c",
+            "created": "2022-03-19T16:05:32.769Z",
+            "modified": "2022-03-19T16:05:32.770Z",
+            "used": null
+        }
+    }
+]

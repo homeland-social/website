@@ -3,7 +3,7 @@ from django.urls import reverse
 from api.tests import APITestCase, AuthenticatedTestCase
 
 
-NAME = '5b1c73d3-42af-4332-a21d-facfd310c412'
+NAME = '0ac99280-5233-47d1-a43b-b02379e832d0'
 KEY = "AAAAE2VjZHNhLXNoYTItbmlzdHAzODQAAAAIbmlzdHAzODQAAABhBLeSFbMl7U1COq4o0VgJ0kSTDi2YV7uz1ifQMmDK1JPpip9EjZGTlmD7GobVyUbV7yGy9kykcusgJF0ZtEB3Bq7IkxH1x0lIkBUudKhhAyyvuTuHh09l3szieT2hsR13pw=="
 TYPE = 'ecdsa-sha2-nistp384'
 
@@ -25,10 +25,11 @@ class SSHKeyVerifyTestCase(APITestCase):
     fixtures = {
         'user.json',
         'sshkey.json',
+        'console.json',
     }
 
     def test_verify(self):
-        r = self.client.post(reverse('sshkey-verify', kwargs={'name': NAME}), {
+        r = self.client.post(reverse('console-verify-key', kwargs={'uuid': NAME}), {
             'key': KEY,
             'type': TYPE,
         })
