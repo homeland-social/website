@@ -175,6 +175,17 @@ class HostnameViewSet(ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
+    @action(detail=False, methods=['POST'])
+    def check(self, request):
+        name = request.data.get('name')
+        if not name:
+            return Response({'name': 'is required'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        host = get_object_or_404(Hostname, name=name)
+        serializer = self.serializer_class(host)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
     @action(detail=False, methods=['GET'])
     def shared(self, request):
         return Response(settings.SHARED_DOMAINS, status=status.HTTP_200_OK)
