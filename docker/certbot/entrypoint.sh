@@ -3,8 +3,10 @@
 trap exit TERM;
 
 /wait-for -t 0 ${PDNS_HOST}:${PDNS_PORT}
-for HAPROXY in $(echo ${HAPROXY_HOSTS} | sed "s/,/ /g"); do
-    /wait-for -t 0 ${HAPROXY}
+
+HAPROXY_HOSTS=$(nslookup -type=a ${HAPROXY_HOST} | grep -v 127 | grep Address: | awk ' { printf "%s ", $2 } ' | xargs echo)
+for HAPROXY in ${HAPROXY_HOSTS}; do
+    /wait-for -t 0 ${HAPROXY}:${HAPROXY_PORT}
 done
 
 if [ ! -z "${CERTBOT_HOST}" ] && [ ! -z "${CERTBOT_PORT}" ]; then

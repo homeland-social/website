@@ -12,9 +12,9 @@ update() {
 
     if [ -f /etc/certificates/${DOMAIN}.pem ]; then
         for HAPROXY in $(echo ${HAPROXY_HOSTS} | sed "s/,/ /g"); do
-            echo -e "set ssl cert ${CERT} <<\n$(cat /etc/certificates/${DOMAIN}.pem)\n" | socat tcp-connect:${HAPROXY} -
-            echo "commit ssl cert ${CERT}" | socat tcp-connect:${HAPROXY} -
-            echo "show ssl cert ${CERT}" | socat tcp-connect:${HAPROXY} -
+            echo -e "set ssl cert ${CERT} <<\n$(cat /etc/certificates/${DOMAIN}.pem)\n" | socat tcp-connect:${HAPROXY}:${HAPROXY_PORT} -
+            echo "commit ssl cert ${CERT}" | socat tcp-connect:${HAPROXY}:${HAPROXY_PORT} -
+            echo "show ssl cert ${CERT}" | socat tcp-connect:${HAPROXY}:${HAPROXY_PORT} -
         done
     fi
 }
@@ -26,7 +26,7 @@ create() {
 
     if [ ! -f "${CERT}" ]; then
         for HAPROXY in $(echo ${HAPROXY_HOSTS} | sed "s/,/ /g"); do
-            echo -e "new ssl cert ${CERT}" | socat tcp-connect:${HAPROXY} -
+            echo -e "new ssl cert ${CERT}" | socat tcp-connect:${HAPROXY}:${HAPROXY_PORT} -
         done
     fi
 
