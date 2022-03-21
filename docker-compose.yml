@@ -13,8 +13,6 @@ networks:
 volumes:
   website-sqlite-db:
   website-ssl-certs:
-  sshd-host-keys:
-    external: true
 
 services:
   website-back:

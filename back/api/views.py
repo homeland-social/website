@@ -110,7 +110,7 @@ class OAuthAuthorizationView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        grant = SERVER.validate_consent_request(request)
+        grant = SERVER.get_consent_grant(request, end_user=request.user)
         serializer = OAuth2AuthzCodeSerializer(grant)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
