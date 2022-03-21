@@ -46,13 +46,23 @@ class HashidsQuerySet(models.QuerySet):
     def get(self, *args, **kwargs):
         uid = kwargs.pop('uid', None)
         if uid:
-            kwargs['id'] = self.model.hashids().decode(uid)[0]
+            try:
+                kwargs['id'] = self.model.hashids().decode(uid)[0]
+
+            except IndexError:
+                LOGGER.exception('Error decoding hashid')
+                kwargs['id'] = None
         return super().get(*args, **kwargs)
 
     def filter(self, *args, **kwargs):
         uid = kwargs.pop('uid', None)
         if uid:
-            kwargs['id'] = self.model.hashids().decode(uid)[0]
+            try:
+                kwargs['id'] = self.model.hashids().decode(uid)[0]
+
+            except IndexError:
+                LOGGER.exception('Error decoding hashid')
+                kwargs['id'] = None
         return super().filter(*args, **kwargs)
 
 

@@ -3,6 +3,7 @@ import itertools
 import hmac
 import socket
 import json
+import glob
 from urllib.parse import urlparse, urlunparse
 from functools import cache as memoize
 
@@ -46,9 +47,18 @@ User = get_user_model()
 
 
 @memoize
-def _load_pub():
+def _load_jwk_pub():
     with open(settings.AUTHLIB_JWK_PUB, 'rb') as f:
         return json.load(f)
+
+
+@memoize
+def _load_ssh_pub():
+    pub_keys = []
+    for path in glob.glob(settings.SSH_HOST_KEYS):
+        with open(path, 'rb') as f:
+            pub_keys.append(f.read())
+    return pub_keys
 
 
 class UserViewSet(ModelViewSet):
@@ -140,7 +150,8 @@ class OAuthJWKSView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        return Response({ 'keys': [_load_pub()]}, status=status.HTTP_200_OK)
+        return Response(
+            { 'keys': [_load_jwk_pub()]}, status=status.HTTP_200_OK)
 
 
 class SSHKeyViewSet(ModelViewSet):
@@ -161,6 +172,10 @@ class SSHKeyViewSet(ModelViewSet):
             name=name, user=request.user, defaults=request.data)
         serializer = self.serializer_class(key)
         return Response(serializer.data)
+
+    @action(detail=False, methods=['GET'])
+    def public(self, request):
+        return Response(_load_ssh_pub())
 
 
 class HostnameViewSet(ModelViewSet):

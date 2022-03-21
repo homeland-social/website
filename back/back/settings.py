@@ -358,3 +358,5 @@ LOGGING = {
         }
     }
 }
+
+SSH_HOST_KEYS = os.getenv('SSH_HOST_KEYS', '/run/secrets/ssh_host_*_key.pub')

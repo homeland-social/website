@@ -13,6 +13,8 @@ networks:
 volumes:
   website-sqlite-db:
   website-ssl-certs:
+  sshd-host-keys:
+    external: true
 
 services:
   website-back:
@@ -32,6 +34,9 @@ services:
       - ./docker/website/entrypoint.sh:/entrypoint.sh:ro
       - ./docker/website/jwk:/run/secrets/jwk:ro
       - ./docker/website/jwk.pub:/run/secrets/jwk.pub:ro
+      - ./docker/website/host_keys/ssh_host_dsa_key.pub:/run/secrets/ssh_host_dsa_key.pub:ro
+      - ./docker/website/host_keys/ssh_host_ecdsa_key.pub:/run/secrets/ssh_host_ecdsa_key.pub:ro
+      - ./docker/website/host_keys/ssh_host_rsa_key.pub:/run/secrets/ssh_host_rsa_key.pub:ro
     env_file:
       # See .env.template for instructions.
       - .env
@@ -47,6 +52,7 @@ services:
       - AUTHLIB_INSECURE_TRANSPORT=true
       - AUTHLIB_JWK=/run/secrets/jwk
       - AUTHLIB_JWK_PUB=/run/secrets/jwk.pub
+      - SSH_HOST_KEYS=/run/secrets/ssh_host_*_key.pub
 
   website-front:
     image: website/front
