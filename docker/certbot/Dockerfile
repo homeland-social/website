@@ -3,7 +3,18 @@ FROM python:3-alpine3.15
 ARG CERTBOT_VERSION=1.24.0
 ENV CERTBOT_VERSION=${CERTBOT_VERSION}
 
-ENV CERTBOT_PDNS_CONF=/etc/pdns-credentials.ini
+ENV CERTBOT_PDNS_CONF=/etc/pdns-credentials.ini \
+    HAPROXY_HOST= \
+    HAPROXY_PORT=9999 \
+    PDNS_HOST= \
+    PDNS_PORT=8081 \
+    PDNS_API_KEY= \
+    CERTBOT_EMAIL= \
+    CERTBOT_DOMAINS= \
+    CERTBOT_SHARED_DOMAINS= \
+    CERTBOT_HOST= \
+    CERTBOT_PORT=14000 \
+    CERTBOT_EXTRA_ARGS=
 
 ADD ./docker/certbot/entrypoint.sh /entrypoint.sh
 ADD ./docker/certbot/renew-certificates.sh /usr/local/bin/

@@ -1,5 +1,20 @@
 FROM python:3-alpine AS python
 
+ENV DJANGO_DEBUG=false \
+    DJANGO_DB_HOST= \
+    DJANGO_DB_USER= \
+    DJANGO_DB_NAME= \
+    DJANGO_DB_PASSWORD= \
+    DJANGO_ALLOWED_HOSTS=.homeland-social.com,.homelandsocial.com \
+    DJANGO_NAME_SERVERS=1.1.1.1,8.8.8.8 \
+    DJANGO_SHARED_DOMAINS=homeland.social \
+    AUTHLIB_INSECURE_TRANSPORT=false \
+    AUTHLIB_JWK=/run/secrets/jwk \
+    AUTHLIB_JWK_PUB=/run/secrets/jwk.pub \
+    SSH_HOST_KEYS=/run/secrets/ssh_host_*_key.pub \
+    CELERY_BROKER_URL=redis://redis:6379/0 \
+    CELERY_BEAT_SCHEDULER=django_celery_beat.schedulers:DatabaseScheduler
+
 ADD ./back /app
 ADD ./docker/website/entrypoint.sh /entrypoint.sh
 

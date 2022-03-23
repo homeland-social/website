@@ -45,7 +45,6 @@ services:
       - DJANGO_DB_NAME=shanty
       - DJANGO_DB_PASSWORD=password
       - DJANGO_ALLOWED_HOSTS=.shanty.social,.shanty.local,localhost
-      - DJANGO_NAME_SERVERS=1.1.1.1,8.8.8.8
       - DJANGO_SHARED_DOMAINS=shanty.social,shanty.local
       - AUTHLIB_INSECURE_TRANSPORT=true
       - AUTHLIB_JWK=/run/secrets/jwk
@@ -91,7 +90,6 @@ services:
       - DJANGO_DB_USER=user
       - DJANGO_DB_NAME=shanty
       - DJANGO_DB_PASSWORD=password
-      - DJANGO_NAME_SERVERS=1.1.1.1,8.8.8.8
       - DJANGO_SHARED_DOMAINS=shanty.social,shanty.local
 
   website-celery:
@@ -114,10 +112,8 @@ services:
       - DJANGO_DB_USER=user
       - DJANGO_DB_NAME=shanty
       - DJANGO_DB_PASSWORD=password
-      - DJANGO_NAME_SERVERS=1.1.1.1,8.8.8.8
       - DJANGO_SHARED_DOMAINS=shanty.social,shanty.local
       - CELERY_BROKER_URL=redis://website-redis:6379/0
-      - CELERY_BEAT_SCHEDULER=django_celery_beat.schedulers:DatabaseScheduler
 
   website-beat:
     image: website/beat
@@ -139,10 +135,8 @@ services:
       - DJANGO_DB_USER=user
       - DJANGO_DB_NAME=shanty
       - DJANGO_DB_PASSWORD=password
-      - DJANGO_NAME_SERVERS=1.1.1.1,8.8.8.8
       - DJANGO_SHARED_DOMAINS=shanty.social,shanty.local
       - CELERY_BROKER_URL=redis://website-redis:6379/0
-      - CELERY_BEAT_SCHEDULER=django_celery_beat.schedulers:DatabaseScheduler
 
   website-dns-master:
     image: website/powerdns
@@ -168,8 +162,6 @@ services:
       - PDNS_MASTER=yes
       - PDNS_SLAVE=no
       - PDNS_WEBSERVER=yes
-      - PDNS_WEBSERVER_HOST=0.0.0.0
-      - PDNS_WEBSERVER_PORT=8081
       - PDNS_WEBSERVER_ACL=10.5.0.0/24,127.0.0.1
       - PDNS_API_KEY=FOOBAR
       - PDNS_AXFR_DISABLE=no
@@ -197,7 +189,6 @@ services:
       - PDNS_MASTER=no
       - PDNS_SLAVE=yes
       - PDNS_WEBSERVER=yes
-      - PDNS_WEBSERVER_HOST=0.0.0.0
       - PDNS_WEBSERVER_ACL=10.5.0.0/24,127.0.0.1
       - PDNS_API_KEY=FOOBAR
       - PDNS_MASTER_ADDR=10.5.0.200

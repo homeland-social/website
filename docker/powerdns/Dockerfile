@@ -2,9 +2,26 @@ FROM alpine:3.15 AS build
 
 ARG PDNS_VERSION=4.5.2
 
-ENV PDNS_CONF=/etc/pdns.conf
-ENV PDNS_CONF_DIR=/etc/pdns.d
-ENV PDNS_SQL_DIR=/var/lib/pdns
+ENV PGSQL_HOST= \
+    PGSQL_PORT=5432 \
+    PGSQL_DATABASE= \
+    PGSQL_USERNAME= \
+    PGSQL_PASSWORD= \
+    PDNS_CONF=/etc/pdns.conf \
+    PDNS_CONF_DIR=/etc/pdns.d \
+    PDNS_SQL_DIR=/var/lib/pdns \
+    PDNS_MASTER=no \
+    PDNS_SLAVE=no \
+    PDNS_MASTER_ADDR= \
+    PDNS_MASTER_NAME= \
+    PDNS_WEBSERVER=no \
+    PDNS_WEBSERVER_HOST=0.0.0.0 \
+    PDNS_WEBSERVER_PORT=8081 \
+    PDNS_WEBSERVER_ACL= \
+    PDNS_API_KEY= \
+    PDNS_AXFR_DISABLE=yes \
+    PDNS_AXFR_ACL= \
+    PDNS_LOG_LEVEL=6
 
 ADD ./docker/powerdns/entrypoint.sh /entrypoint.sh
 ADD ./docker/powerdns/pdns.conf.tmpl /etc/
