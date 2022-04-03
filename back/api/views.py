@@ -5,7 +5,6 @@ import socket
 import json
 import glob
 from urllib.parse import urlparse, urlunparse
-from functools import cache as memoize
 
 import dns.resolver
 
@@ -17,8 +16,9 @@ from django.db.models.signals import post_save, post_delete
 from django.contrib.auth import get_user_model, login, logout, authenticate
 from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.cache import cache_page
+from django.utils.decorators import method_decorator
 
-from cache_memoize import cache_memoize
 from rest_framework import status, permissions
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
@@ -44,21 +44,6 @@ RESOLVER = dns.resolver.Resolver(configure=False)
 RESOLVER.nameservers = settings.NAME_SERVERS
 
 User = get_user_model()
-
-
-@memoize
-def _load_jwk_pub():
-    with open(settings.AUTHLIB_JWK_PUB, 'rb') as f:
-        return json.load(f)
-
-
-@memoize
-def _load_ssh_pub():
-    pub_keys = []
-    for path in glob.glob(settings.SSH_HOST_KEYS):
-        with open(path, 'rb') as f:
-            pub_keys.append(f.read())
-    return pub_keys
 
 
 class UserViewSet(ModelViewSet):
@@ -149,9 +134,11 @@ class OpenIDCMetadataView(APIView):
 class OAuthJWKSView(APIView):
     permission_classes = [AllowAny]
 
+    @method_decorator(cache_page(60 * 60))
     def get(self, request):
-        return Response(
-            { 'keys': [_load_jwk_pub()]}, status=status.HTTP_200_OK)
+        with open(settings.AUTHLIB_JWK_PUB, 'rb') as f:
+            return Response(
+                { 'keys': [json.load(f)]}, status=status.HTTP_200_OK)
 
 
 class SSHKeyViewSet(ModelViewSet):
@@ -174,8 +161,13 @@ class SSHKeyViewSet(ModelViewSet):
         return Response(serializer.data)
 
     @action(detail=False, methods=['GET'])
+    @method_decorator(cache_page(60 * 60))
     def public(self, request):
-        return Response(_load_ssh_pub())
+        pub_keys = []
+        for path in glob.glob(settings.SSH_HOST_KEYS):
+            with open(path, 'rb') as f:
+                pub_keys.append(f.read())
+        return Response(pub_keys)
 
 
 class HostnameViewSet(ModelViewSet):
