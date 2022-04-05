@@ -4,6 +4,7 @@
       "pk": 1,
       "fields": {
         "user_id": 1,
+        "console_id": "0ac99280-5233-47d1-a43b-b02379e832d0",
         "name": "0ac99280-5233-47d1-a43b-b02379e832d0",
         "key": "AAAAE2VjZHNhLXNoYTItbmlzdHAzODQAAAAIbmlzdHAzODQAAABhBLeSFbMl7U1COq4o0VgJ0kSTDi2YV7uz1ifQMmDK1JPpip9EjZGTlmD7GobVyUbV7yGy9kykcusgJF0ZtEB3Bq7IkxH1x0lIkBUudKhhAyyvuTuHh09l3szieT2hsR13pw==",
         "type": "ecdsa-sha2-nistp384",

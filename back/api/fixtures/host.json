@@ -4,6 +4,7 @@
       "pk": 1,
       "fields": {
         "user_id": 1,
+        "console_id": "0ac99280-5233-47d1-a43b-b02379e832d0",
         "name": "google.com",
         "modified": "2022-01-17T00:05:40.009Z"
       }

@@ -160,9 +160,23 @@ class User(HashidsModelMixin, AbstractUser):
         return True
 
 
+class Console(models.Model):
+    uuid = models.UUIDField(null=False, primary_key=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    token = models.UUIDField(null=False, default=uuid4)
+    created = models.DateTimeField(default=timezone.now)
+    modified = models.DateTimeField(auto_now=True)
+    used = models.DateTimeField(null=True)
+
+    def __str__(self):
+        return f'Console: uuid={self.uuid}'
+
+
 class SSHKey(HashidsModelMixin, models.Model):
     user = models.ForeignKey(User, db_index=True, related_name='sshkeys',
                              on_delete=models.CASCADE)
+    console = models.ForeignKey(
+        Console, related_name='sshkeys', on_delete=models.CASCADE)
     name = models.UUIDField(unique=True, default=uuid4)
     key = models.TextField(max_length=2000)
     type = models.CharField(max_length=20)
@@ -175,6 +189,8 @@ class SSHKey(HashidsModelMixin, models.Model):
 class Hostname(HashidsModelMixin, models.Model):
     user = models.ForeignKey(User, db_index=True, related_name='hosts',
                              on_delete=models.CASCADE)
+    console = models.ForeignKey(
+        Console, related_name='hosts', on_delete=models.CASCADE)
     name = models.CharField(max_length=128, unique=True)
     addresses = ArrayField(
         models.GenericIPAddressField(), null=True
@@ -182,14 +198,14 @@ class Hostname(HashidsModelMixin, models.Model):
     created = models.DateTimeField(default=timezone.now)
     modified = models.DateTimeField(auto_now=True)
 
+    objects = HashidsManager()
+
     @cached_property
     def internal(self):
         for domain in settings.SHARED_DOMAINS:
             if self.name.endswith(f'.{domain}'):
                 return True
         return False
-
-    objects = HashidsManager()
 
 
 # https://docs.authlib.org/en/latest/django/2/authorization-server.html
@@ -303,12 +319,3 @@ class OAuth2Code(HashidsModelMixin, models.Model, AuthorizationCodeMixin):
 
     def get_nonce(self):
         return self.nonce
-
-
-class Console(models.Model):
-    uuid = models.UUIDField(null=False, primary_key=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    token = models.UUIDField(null=False, default=uuid4)
-    created = models.DateTimeField(default=timezone.now)
-    modified = models.DateTimeField(auto_now=True)
-    used = models.DateTimeField(null=True)

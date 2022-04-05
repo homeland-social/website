@@ -18,6 +18,7 @@ from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.cache import cache_page
 from django.utils.decorators import method_decorator
+from django.db import transaction
 
 from rest_framework import status, permissions
 from rest_framework.response import Response
@@ -166,7 +167,7 @@ class SSHKeyViewSet(ModelViewSet):
         pub_keys = []
         for path in glob.glob(settings.SSH_HOST_KEYS):
             with open(path, 'rb') as f:
-                pub_keys.append(f.read())
+                pub_keys.append(f.read().strip())
         return Response(pub_keys)
 
 
@@ -260,11 +261,13 @@ class ConsoleViewSet(ModelViewSet):
                 content_type='application/json')
 
         valid, console = False, get_object_or_404(Console, uuid=uuid)
-        for sshkey in console.user.sshkeys.all():
+        for sshkey in console.sshkeys.all():
+            # NOTE: we check all keys, even after finding a match, this is
+            # to avoid timing attacks. The time is dominated by how many
+            # keys we check, not how similar the key pairs we are checking are.
             if hmac.compare_digest(sshkey.key, key_data) and \
                sshkey.type == key_type:
                 valid = True
-                break
 
         if not valid:
             return Response({'key': 'Invalid'}, status.HTTP_400_BAD_REQUEST,
@@ -287,7 +290,7 @@ class ConsoleViewSet(ModelViewSet):
 
         console = get_object_or_404(Console, uuid=uuid)
         try:
-            host = console.user.hosts.get(name=domain)
+            host = console.hosts.get(name=domain)
 
         except Hostname.DoesNotExist:
             return Response({'domain': 'Invalid'}, status.HTTP_400_BAD_REQUEST,
@@ -296,3 +299,26 @@ class ConsoleViewSet(ModelViewSet):
         else:
             serializer = HostnameSerializer(host)
             return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['POST'], permission_classes=[AllowAny])
+    @transaction.atomic
+    def register(self, request):
+        try:
+            console, created = Console.objects.get_or_create(
+                user=request.user, uuid=request.data['uuid'])
+
+            domain, created = Hostname.objects.get_or_create(
+                user=request.user, console=console,
+                name=request.data['domain_name'])
+
+            sshkey, created = SSHKey.objects.get_or_create(
+                user=request.user, console=console, key=request.data['key'],
+                type=request.data['type'])
+
+        except KeyError:
+            return Response(
+                {e.args[0]: 'Is required'}, status.HTTP_400_BAD_REQUEST,
+                content_type='application/json')
+
+        serializer = self.serializer_class(console)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)

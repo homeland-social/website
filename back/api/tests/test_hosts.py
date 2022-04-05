@@ -7,6 +7,7 @@ from api.models import Hostname, User
 class HostsTestCase(AuthenticatedTestCase):
     fixtures = [
         'user.json',
+        'console.json',
         'host.json',
     ]
 

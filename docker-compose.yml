@@ -77,7 +77,7 @@ services:
     networks:
       - private
     volumes:
-      - ./back:/app:ro
+      - ./back:/app
       - ./docker/website/entrypoint.sh:/entrypoint.sh:ro
     depends_on:
       - website-db

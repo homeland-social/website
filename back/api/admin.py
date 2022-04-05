@@ -42,19 +42,19 @@ class UserAdmin(_UserAdmin):
 
 @admin.register(SSHKey)
 class SSHKeyAdmin(admin.ModelAdmin):
-    pass
+    list_display = ("name", "type", "user", "console")
 
 
 @admin.register(Hostname)
 class HostnameAdmin(admin.ModelAdmin):
-    pass
+    list_display = ("name", "user", "console")
 
 
 @admin.register(OAuth2Client)
 class OAuth2ClientAdmin(admin.ModelAdmin):
-    pass
+    list_display = ("user", "client_id", "client_name", "website_uri")
 
 
 @admin.register(Console)
 class ConsoleAdmin(admin.ModelAdmin):
-    pass
+    list_display = ("uuid", "user")

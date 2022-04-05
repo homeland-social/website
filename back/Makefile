@@ -24,7 +24,8 @@ lint: deps
 
 .PHONY: migrations
 migrations: deps
-	${PIPRUN} manage.py makemigrations
+	${DOCKER_COMPOSE} run website-migrate python3 manage.py makemigrations
+	sudo chown -R ${USER}:${USER} api/migrations/
 
 
 .PHONY: migrate
