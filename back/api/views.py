@@ -194,7 +194,7 @@ class HostnameViewSet(ModelViewSet):
         serializer = self.serializer_class(host)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['GET'])
+    @action(detail=False, methods=['GET'], permission_classes=[AllowAny])
     def shared(self, request):
         return Response(settings.SHARED_DOMAINS, status=status.HTTP_200_OK)
 

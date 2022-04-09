@@ -12,6 +12,10 @@
                 <v-toolbar-title>Register</v-toolbar-title>
               </v-toolbar>
               <v-card-text>
+                <p class="text-h4">Create an account</p>
+                <p>An account is required to set up domains for use with the <a target="new" href="https://github.com/shanty-social/console/">Homeland social console</a>.</p>
+              </v-card-text>
+              <v-card-text>
                 <v-text-field
                   v-model="form.username"
                   name="username"

@@ -3,7 +3,7 @@
       "model": "api.user",
       "pk": 1,
       "fields": {
-        "username": "testuser",
+        "username": "Homeland Social",
         "password": "pbkdf2_sha256$260000$RjyggGyA2iBHshW3fII4Di$fveHnXajCAs7y8jtAbPcz58qMVReTBjhnYT022IEHQM=",
         "last_login": null,
         "is_superuser": true,
