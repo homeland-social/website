@@ -19,6 +19,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.cache import cache_page
 from django.utils.decorators import method_decorator
 from django.db import transaction
+from django.utils import timezone
 
 from rest_framework import status, permissions
 from rest_framework.response import Response
@@ -273,10 +274,10 @@ class ConsoleViewSet(ModelViewSet):
             return Response({'key': 'Invalid'}, status.HTTP_400_BAD_REQUEST,
                             content_type='application/json')
 
-        else:
-            serializer = SSHKeySerializer(sshkey)
-            return Response(serializer.data, status.HTTP_200_OK,
-                            content_type='application/json')
+        Console.objects.filter(pk=console.pk).update(used=timezone.now())
+        serializer = SSHKeySerializer(sshkey)
+        return Response(serializer.data, status.HTTP_200_OK,
+                        content_type='application/json')
 
     @action(detail=True, methods=['POST'], permission_classes=[AllowAny])
     def verify_host(self, request, uuid=None):

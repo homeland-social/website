@@ -26,6 +26,7 @@
                       small
                       color="light-green"
                       text-color="white"
+                      v-if="item.count !== null"
                     >{{ item.count }}</v-chip>
                   </v-list-item-action>
                 </v-list-item>
@@ -45,18 +46,16 @@
 
 <script>
 import { mapGetters } from 'vuex'
-import Hostnames from '@/components/Hostnames'
-import SSHKeys from '@/components/SSHKeys'
-import OAuthTokens from '@/components/OAuthTokens'
+import Account from '@/components/Account'
+import Consoles from '@/components/Consoles'
 
 export default {
   name: 'Settings',
   title: 'Settings',
 
   components: {
-    Hostnames,
-    SSHKeys,
-    OAuthTokens
+    Account,
+    Consoles,
   },
 
   data () {
@@ -66,25 +65,28 @@ export default {
   },
 
   mounted () {
-    this.$store.dispatch('hostnames/fetch')
-    this.$store.dispatch('sshkeys/fetch')
-    this.$store.dispatch('oauthtokens/fetch')
+    this.fetchConsoles()
   },
 
   computed: {
     ...mapGetters({
-      hostnames: 'hostnames/count',
-      sshkeys: 'sshkeys/count',
-      oauthtokens: 'oauthtokens/count'
+      consoles: 'consoles/data'
     }),
+
+    consoleCount () {
+      return (this.consoles) ? this.consoles.length : 0;
+    },
 
     items () {
       return [
-        { icon: 'mdi-dns-outline', name: 'Hostnames', count: this.hostnames, component: Hostnames },
-        { icon: 'mdi-key-outline', name: 'SSH keys' , count: this.sshkeys, component: SSHKeys },
-        { icon: 'mdi-server', name: 'OAuth tokens', count: this.oauthtokens, component: OAuthTokens }
+        { icon: 'mdi-account', name: 'Account', count: null, component: Account },
+        { icon: 'mdi-dns-outline', name: 'consoles', count: this.consoleCount, component: Consoles },
       ]
     }
+  },
+
+  methods: {
+    ...mapActions({ fetchConsoles: 'consoles/fetch' }),
   },
 }
 </script>

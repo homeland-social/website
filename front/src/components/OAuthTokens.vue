@@ -1,7 +1,7 @@
 <template>
   <v-card class="elevation-12">
     <v-toolbar dark color="primary">
-      <v-toolbar-title v-text="items[selected].name"></v-toolbar-title>
+      <v-toolbar-title>OAuth Tokens</v-toolbar-title>
     </v-toolbar>
     <v-card-text>
       <p>OAuth tokens are used by the console to make API calls.</p>

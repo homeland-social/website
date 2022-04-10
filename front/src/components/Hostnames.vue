@@ -1,7 +1,7 @@
 <template>
   <v-card class="elevation-12">
     <v-toolbar dark color="primary">
-      <v-toolbar-title v-text="items[selected].name"></v-toolbar-title>
+      <v-toolbar-title>Hostnames</v-toolbar-title>
     </v-toolbar>
     <v-card-text>
       <p>Host names are allocated for your use. They can be subdomains of a shared domain, or a domain controlled by you.</p>

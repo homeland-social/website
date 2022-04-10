@@ -27,7 +27,7 @@ class UserConfirmTestCase(APITestCase):
     ]
 
     def setUp(self):
-        self.user = User.objects.get(username='testuser')
+        self.user = User.objects.get(username='Homeland Social')
         self.confirmation = self.user.generate_confirmation()
 
     def test_confirm(self):
@@ -69,4 +69,4 @@ class UserLoggedInTestCase(AuthenticatedTestCase):
         r = self.client.get(reverse('user-whoami'))
         self.assertEqual(200, r.status_code)
         self.assertEqual('test@test.org', r.json().get('email'))
-        self.assertEqual('testuser', r.json().get('username'))
+        self.assertEqual('Homeland Social', r.json().get('username'))

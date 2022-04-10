@@ -11,7 +11,7 @@
           light
         >
           Homeland social
-          <v-icon>mdi-earth</v-icon>
+          <v-icon class="ml-2">mdi-message-outline</v-icon>
         </v-btn>
       </div>
 

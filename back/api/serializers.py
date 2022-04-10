@@ -108,4 +108,7 @@ class HostnameSerializer(serializers.ModelSerializer):
 class ConsoleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Console
-        fields = ('uuid', 'token', 'created', 'used')
+        fields = ('uuid', 'token', 'created', 'used', 'sshkeys', 'hosts')
+
+    sshkeys = SSHKeySerializer(many=True)
+    hosts = HostnameSerializer(many=True)

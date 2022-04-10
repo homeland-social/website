@@ -1,7 +1,7 @@
 <template>
   <v-card class="elevation-12">
     <v-toolbar dark color="primary">
-      <v-toolbar-title v-text="items[selected].name"></v-toolbar-title>
+      <v-toolbar-title>SSH Keys</v-toolbar-title>
     </v-toolbar>
     <v-card-text>
       <p>SSH keys are used by the console to establish an SSH tunnel.</p>
