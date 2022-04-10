@@ -1,6 +1,4 @@
-![docker image](https://github.com/homeland-social/website/actions/workflows/docker-image.yml/badge.svg)
-
-[![Documentation Status](https://readthedocs.org/projects/homeland-social-website/badge/?version=latest)](https://homeland-social-website.readthedocs.io/en/latest/?badge=latest)
+![docker image](https://github.com/homeland-social/website/actions/workflows/docker-image.yml/badge.svg) [![Documentation Status](https://readthedocs.org/projects/homeland-social-website/badge/?version=latest)](https://homeland-social-website.readthedocs.io/en/latest/?badge=latest)
 
 # website
 
