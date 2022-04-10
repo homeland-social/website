@@ -45,7 +45,7 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapGetters, mapActions } from 'vuex'
 import Account from '@/components/Account'
 import Consoles from '@/components/Consoles'
 
