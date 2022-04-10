@@ -1,5 +1,4 @@
-![docker image](https://github.com/homeland-social/website/actions/workflows/docker-image.yml/badge.svg) [![Documentation Status](https://readthedocs.org/projects/homeland-social-website/badge/?version=latest)](https://homeland-social-website.readthedocs.io/en/latest/?badge=latest)
-
+![docker image](https://github.com/homeland-social/website/actions/workflows/docker-image.yml/badge.svg) [![Documentation Status](https://readthedocs.org/projects/homeland-social-website/badge/?version=latest)](https://homeland-social-website.readthedocs.io/en/latest/?badge=latest) ![Docker Pulls](https://img.shields.io/docker/pulls/homelandsocial/website-final) ![Docker Image Version (latest by date)](https://img.shields.io/docker/v/homelandsocial/website-final)
 # website
 
 Website for homeland social.
