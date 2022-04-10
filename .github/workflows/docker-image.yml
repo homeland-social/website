@@ -32,47 +32,47 @@ jobs:
       - name: build and push
         run: |
           docker build . -f docker/certbot/Dockerfile \
-            -t ${{secrets.DOCKER_USER}}/website-certbot:${{env.tag}} \
-            -t ${{secrets.DOCKER_USER}}/website-certbot:latest
+            -t ${{secrets.DOCKER_ORG}}/website-certbot:${{env.tag}} \
+            -t ${{secrets.DOCKER_ORG}}/website-certbot:latest
           docker build . -f docker/website/Dockerfile \
             --target=final \
-            -t ${{secrets.DOCKER_USER}}/website-final:${{env.tag}} \
-            -t ${{secrets.DOCKER_USER}}/website-final:latest
+            -t ${{secrets.DOCKER_ORG}}/website-final:${{env.tag}} \
+            -t ${{secrets.DOCKER_ORG}}/website-final:latest
           docker build . -f docker/powerdns/Dockerfile \
-            -t ${{secrets.DOCKER_USER}}/website-dns:${{env.tag}} \
-            -t ${{secrets.DOCKER_USER}}/website-dns:latest
+            -t ${{secrets.DOCKER_ORG}}/website-dns:${{env.tag}} \
+            -t ${{secrets.DOCKER_ORG}}/website-dns:latest
           docker build . -f docker/haproxy/Dockerfile \
             -t ${{secrets.DOCKER_USER}}/website-haproxy:${{env.tag}} \
             -t ${{secrets.DOCKER_USER}}/website-haproxy:latest
-          docker push -a ${{secrets.DOCKER_USER}}/website-certbot
-          docker push -a ${{secrets.DOCKER_USER}}/website-final
-          docker push -a ${{secrets.DOCKER_USER}}/website-dns
-          docker push -a ${{secrets.DOCKER_USER}}/website-haproxy
+          docker push -a ${{secrets.DOCKER_ORG}}/website-certbot
+          docker push -a ${{secrets.DOCKER_ORG}}/website-final
+          docker push -a ${{secrets.DOCKER_ORG}}/website-dns
+          docker push -a ${{secrets.DOCKER_ORG}}/website-haproxy
 
       - name: Docker Hub Description
         uses: peter-evans/dockerhub-description@v2
         with:
           username: ${{ secrets.DOCKER_USER }}
-          password: ${{ secrets.DOCKER_PASSWORD_ }}
-          repository: shantysocial/website-certbot
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          repository: ${{ secrets.DOCKER_ORG }}/website-certbot
 
       - name: Docker Hub Description
         uses: peter-evans/dockerhub-description@v2
         with:
           username: ${{ secrets.DOCKER_USER }}
-          password: ${{ secrets.DOCKER_PASSWORD_ }}
-          repository: shantysocial/website-final
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          repository: ${{ secrets.DOCKER_ORG }}/website-final
 
       - name: Docker Hub Description
         uses: peter-evans/dockerhub-description@v2
         with:
           username: ${{ secrets.DOCKER_USER }}
-          password: ${{ secrets.DOCKER_PASSWORD_ }}
-          repository: shantysocial/website-dns
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          repository: ${{ secrets.DOCKER_ORG }}/website-dns
 
       - name: Docker Hub Description
         uses: peter-evans/dockerhub-description@v2
         with:
           username: ${{ secrets.DOCKER_USER }}
-          password: ${{ secrets.DOCKER_PASSWORD_ }}
-          repository: shantysocial/website-haproxy
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          repository: ${{ secrets.DOCKER_ORG }}/website-haproxy
