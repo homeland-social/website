@@ -42,8 +42,8 @@ jobs:
             -t ${{secrets.DOCKER_ORG}}/website-dns:${{env.tag}} \
             -t ${{secrets.DOCKER_ORG}}/website-dns:latest
           docker build . -f docker/haproxy/Dockerfile \
-            -t ${{secrets.DOCKER_USER}}/website-haproxy:${{env.tag}} \
-            -t ${{secrets.DOCKER_USER}}/website-haproxy:latest
+            -t ${{secrets.DOCKER_ORG}}/website-haproxy:${{env.tag}} \
+            -t ${{secrets.DOCKER_ORG}}/website-haproxy:latest
           docker push -a ${{secrets.DOCKER_ORG}}/website-certbot
           docker push -a ${{secrets.DOCKER_ORG}}/website-final
           docker push -a ${{secrets.DOCKER_ORG}}/website-dns
