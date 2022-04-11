@@ -2,6 +2,16 @@
 
 This image contains powerdns configured via environment variables. You can set up a slave and / or master server using postgres or sqlite.
 
+## Using this image
+
+```bash
+$ docker run -ti homelandsocial/website-dns
+```
+
+### Example docker-compose
+
+[https://raw.githubusercontent.com/homeland-social/website/master/docker-compose.yml](https://raw.githubusercontent.com/homeland-social/website/master/docker-compose.yml)
+
 ## Environment variables
 
 Note that you should define `SQLITE_DB` or `PGSQL_*` not both.
@@ -25,4 +35,3 @@ Note that you should define `SQLITE_DB` or `PGSQL_*` not both.
 | `PDNS_AXFR_DISABLE` | Disallow zone transfers; `yes` or `no`, should be enabled on slave | `yes` |
 | `PDNS_AXFR_ACL` | Allow zone transfers from given ip address or cidr, should be slave's address | |
 | `PDNS_LOG_LEVEL` | Integer value between 1-6, see powerdns docs | |
-

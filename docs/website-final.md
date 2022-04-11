@@ -1,6 +1,16 @@
-# website-final
+# website-final docker image
 
 This image contains the website frontend (vue.js) backend (django) and static files. Everything is served by uWSGI and meant to be behind a proxy. Haproxy is used for this purpose. Several additional commands are supported.
+
+## Using this image
+
+```bash
+$ docker run -ti homelandsocial/website-final
+```
+
+### Example docker-compose
+
+[https://raw.githubusercontent.com/homeland-social/website/master/docker-compose.yml](https://raw.githubusercontent.com/homeland-social/website/master/docker-compose.yml)
 
 ## Environment variables
 
@@ -33,11 +43,23 @@ Several additional commands are supported. These will run something other than t
 
 Runs Django migrations.
 
+### Using this image
+
+```bash
+$ docker run -ti homelandsocial/website-final migrate
+```
+
 ## Command `celery`
 
 Runs celery job worker.
 
 In addition to the above settings, you can define the following celery-specific options.
+
+### Using this image
+
+```bash
+$ docker run -ti homelandsocial/website-final celery
+```
 
 ### Environment variables
 
@@ -51,9 +73,14 @@ Runs celery beat scheduler.
 
 In addition to the above settings, you can define the following celery-specific options.
 
+### Using this image
+
+```bash
+$ docker run -ti homelandsocial/website-final beat
+```
+
 ### Environment variables
 
 | Name | Description | Default |
 | ------ | ----------- | ------- |
 | `CELERY_BEAT_SCHEDULER` | Celery beat scheduler to use | |
-

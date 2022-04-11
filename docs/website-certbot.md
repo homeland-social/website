@@ -2,6 +2,16 @@
 
 This image contains integration between letsencrypt and our haproxy image. This allows all configured domains to utilize SSL automatically.
 
+## Using this image
+
+```bash
+$ docker run -ti homelandsocial/website-certbot
+```
+
+### Example docker-compose
+
+[https://raw.githubusercontent.com/homeland-social/website/master/docker-compose.yml](https://raw.githubusercontent.com/homeland-social/website/master/docker-compose.yml)
+
 ## Environment variables
 
 | Name | Description | Default |
@@ -23,4 +33,3 @@ This image contains integration between letsencrypt and our haproxy image. This 
 | ---- | ----------- |
 | `/etc/certificates` | Where combined certificates are stored for haproxy |
 | `/etc/letsencrypt/live` | Where certbot state is stored |
-
