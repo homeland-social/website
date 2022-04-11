@@ -7,6 +7,10 @@ This repository contains all of the source code and configuration for the homela
 
 See [full documentation](https://homeland-social-website.readthedocs.io/).
 
+## Architecture
+
+![overview](https://raw.githubusercontent.com/homeland-social/website/master/docs/images/overview.png)
+
 ## Using the site
 
 To use the site, simply [register](https://www.homeland-social.com/#/registration) for an account. Once that is done, you need to install the [Homeland console](https://github.com/homeland-social/console/) container in docker.
