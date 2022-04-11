@@ -11,7 +11,10 @@ Welcome to homeland-social-website's documentation!
    :caption: Contents:
 
    README.md
-
+   website-final.md
+   website-haproxy.md
+   website-certbot.md
+   website-dns.md
 
 Indices and tables
 ==================
